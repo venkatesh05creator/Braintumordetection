@@ -1,0 +1,57 @@
+# Virtual Environments
+.venv/
+.venv39/
+venv/
+env/
+ENV/
+
+# Caches & Temp files
+.pytest_cache/
+backend/.pytest_cache/
+.freebuff/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.cache/
+*.log
+
+# Executables & Local Tools
+ngrok.exe
+ngrok.yml
+ngrok_run.log
+*.exe
+
+# Databases & User Uploads
+*.db
+*.sqlite
+*.sqlite3
+brain_tumor.db
+backend/brain_tumor.db
+uploads/
+backend/uploads/
+
+# Node & Frontend dependencies/builds
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+build/
+frontend/build/
+.vite/
+frontend/.vite/
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+backend/.env
+frontend/.env
+
+# OS & IDE metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

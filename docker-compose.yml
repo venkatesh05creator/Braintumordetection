@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app          # Hot-reload for development
+      - mri_uploads:/app/uploads
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=sqlite+aiosqlite:///./brain_tumor.db
+      - SECRET_KEY=${SECRET_KEY:-dev_secret_key_change_in_production}
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - HF_API_KEY=${HF_API_KEY:-}
+      - CLOUDINARY_URL=${CLOUDINARY_URL:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── React Frontend ───────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules       # Preserve container node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_SOCKET_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mri_uploads:

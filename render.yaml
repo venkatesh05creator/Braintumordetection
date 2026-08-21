@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: brain-tumor-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:socket_app --host 0.0.0.0 --port $PORT
+    rootDir: backend
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        sync: false  # Set in Render dashboard → Supabase PostgreSQL URL
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false  # Set to your Vercel frontend URL
+      - key: GEMINI_API_KEY
+        sync: false  # Get free at: https://aistudio.google.com/app/apikey
+      - key: HF_API_KEY
+        sync: false  # Get free at: https://huggingface.co/settings/tokens
+      - key: CLOUDINARY_URL
+        sync: false  # Get free at: https://cloudinary.com
