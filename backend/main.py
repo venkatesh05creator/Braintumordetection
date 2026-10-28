@@ -200,6 +200,18 @@ app.include_router(system.router, prefix="/api/system", tags=["System Status"])
 
 # ── Health check ──────────────────────────────────────────────────────────────
 
+@app.get("/", tags=["System"])
+@app.head("/", tags=["System"])
+async def root():
+    return {
+        "status": "online",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health", tags=["System"])
 async def health_check():
     return {
