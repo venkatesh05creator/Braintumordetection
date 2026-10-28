@@ -92,6 +92,8 @@ export const authAPI = {
   login: (data) => apiClient.post('/auth/login', data),
   refresh: (refreshToken) => apiClient.post('/auth/refresh', { refresh_token: refreshToken }),
   me: () => apiClient.get('/auth/me'),
+  updateProfile: (data) => apiClient.patch('/auth/me', data),
+  changePassword: (data) => apiClient.post('/auth/change-password', data),
   forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
   resetPassword: (token, newPassword) => apiClient.post('/auth/reset-password', { token, new_password: newPassword }),
 };

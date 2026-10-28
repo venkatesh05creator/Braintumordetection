@@ -1,11 +1,9 @@
 """Pydantic schemas for authentication endpoints."""
 
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from models.user import UserRole
-
-
-from typing import Optional
 
 
 class RegisterRequest(BaseModel):
@@ -69,3 +67,20 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError("Password must contain at least one digit.")
         return v
 
+
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = Field(None, min_length=2, max_length=255)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit.")
+        return v

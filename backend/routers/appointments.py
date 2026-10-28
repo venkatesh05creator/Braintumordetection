@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from config import settings
 from database import get_db
 from models import Appointment, Patient, User, UserRole
 from utils.audit import log_audit_event
@@ -23,7 +24,8 @@ VALID_TYPES = {"consultation", "follow_up", "scan_review", "urgent"}
 
 
 class AppointmentCreate(BaseModel):
-    doctor_id: int
+    doctor_id: Optional[int] = None
+    patient_id: Optional[int] = None
     scheduled_at: datetime
     duration_minutes: int = Field(default=30, ge=15, le=120)
     appointment_type: str = Field(default="consultation")
@@ -165,30 +167,40 @@ async def create_appointment(
             detail=f"Invalid appointment type. Must be one of: {', '.join(sorted(VALID_TYPES))}",
         )
 
-    # Validate doctor
-    doc_res = await db.execute(select(User).where(User.id == payload.doctor_id))
-    doctor = doc_res.scalar_one_or_none()
-    if not doctor or doctor.role != UserRole.DOCTOR:
-        raise HTTPException(status_code=404, detail="Doctor not found.")
-    if not doctor.is_verified:
-        raise HTTPException(
-            status_code=400,
-            detail="Appointments can only be scheduled with verified medical professionals.",
-        )
-
-    # Determine patient profile
+    # Determine doctor and patient
     if current_user.role == UserRole.PATIENT:
         pat_res = await db.execute(select(Patient).where(Patient.user_id == current_user.id))
         patient = pat_res.scalar_one_or_none()
         if not patient:
             raise HTTPException(status_code=400, detail="Patient profile not found. Please complete registration.")
         patient_id = patient.id
+        if not doctor_id:
+            raise HTTPException(status_code=400, detail="Doctor selection is required.")
+        doctor_id = doctor_id
         initial_status = "requested"
+
+        # Validate doctor
+        doc_res = await db.execute(select(User).where(User.id == doctor_id))
+        doctor = doc_res.scalar_one_or_none()
+        if not doctor or doctor.role != UserRole.DOCTOR:
+            raise HTTPException(status_code=404, detail="Doctor not found.")
+        if settings.REQUIRE_DOCTOR_VERIFICATION and not doctor.is_verified:
+            raise HTTPException(
+                status_code=400,
+                detail="Appointments can only be scheduled with verified medical professionals.",
+            )
+
     elif current_user.role == UserRole.DOCTOR:
-        raise HTTPException(
-            status_code=400,
-            detail="Doctors schedule appointments via patient records.",
-        )
+        doctor_id = current_user.id
+        if not payload.patient_id:
+            raise HTTPException(status_code=400, detail="Patient selection is required.")
+        pat_res = await db.execute(select(Patient).where(Patient.id == payload.patient_id))
+        patient = pat_res.scalar_one_or_none()
+        if not patient:
+            raise HTTPException(status_code=404, detail="Patient record not found.")
+        patient_id = patient.id
+        initial_status = "scheduled"
+
     elif current_user.role == UserRole.ADMIN:
         raise HTTPException(status_code=400, detail="Admins cannot directly request personal appointments.")
     else:
@@ -196,7 +208,7 @@ async def create_appointment(
 
     # Check for overlapping appointment for doctor
     has_conflict = await check_doctor_conflict(
-        db, payload.doctor_id, payload.scheduled_at, payload.duration_minutes
+        db, doctor_id, payload.scheduled_at, payload.duration_minutes
     )
     if has_conflict:
         raise HTTPException(
@@ -206,7 +218,7 @@ async def create_appointment(
 
     appointment = Appointment(
         patient_id=patient_id,
-        doctor_id=payload.doctor_id,
+        doctor_id=doctor_id,
         scheduled_at=payload.scheduled_at,
         duration_minutes=payload.duration_minutes,
         status=initial_status,
@@ -223,7 +235,7 @@ async def create_appointment(
         action="APPOINTMENT_REQUESTED",
         resource_type="appointment",
         resource_id=str(appointment.id),
-        details={"doctor_id": payload.doctor_id, "scheduled_at": payload.scheduled_at.isoformat()},
+        details={"doctor_id": doctor_id, "scheduled_at": payload.scheduled_at.isoformat()},
     )
 
     return AppointmentResponse(

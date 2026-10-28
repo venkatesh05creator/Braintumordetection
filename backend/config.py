@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    REQUIRE_DOCTOR_VERIFICATION: bool = True
+    REQUIRE_DOCTOR_VERIFICATION: bool = False
 
     # ── Database ─────────────────────────────────────────────────────────────
     # Supabase: postgresql+asyncpg://user:pass@host:5432/postgres

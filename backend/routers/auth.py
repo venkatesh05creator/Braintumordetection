@@ -27,6 +27,8 @@ from schemas.auth import (
     ResetPasswordRequest,
     TokenResponse,
     UserOut,
+    UpdateProfileRequest,
+    ChangePasswordRequest,
 )
 from utils.auth_deps import get_current_user
 from utils.rate_limit import limiter
@@ -71,7 +73,7 @@ async def register(request: Request, body: RegisterRequest, db: AsyncSession = D
         full_name=body.full_name,
         role=body.role,
         is_active=True,
-        is_verified=False,
+        is_verified=not settings.REQUIRE_DOCTOR_VERIFICATION if body.role == UserRole.DOCTOR else True,
     )
     db.add(user)
     await db.flush()
@@ -167,6 +169,47 @@ async def refresh_token(request: Request, body: RefreshRequest, db: AsyncSession
 async def get_me(current_user: User = Depends(get_current_user)):
     """Return the profile of the currently authenticated user."""
     return current_user
+
+@router.patch(
+    "/me",
+    response_model=UserOut,
+    summary="Update current authenticated user profile",
+)
+async def update_me(
+    body: UpdateProfileRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if body.full_name:
+        current_user.full_name = body.full_name
+        if current_user.role == UserRole.PATIENT:
+            pat_res = await db.execute(select(Patient).where(Patient.user_id == current_user.id))
+            patient = pat_res.scalar_one_or_none()
+            if patient:
+                patient.full_name = body.full_name
+        await db.commit()
+        await db.refresh(current_user)
+    return current_user
+
+
+@router.post(
+    "/change-password",
+    summary="Change password for logged-in user",
+)
+async def change_password(
+    body: ChangePasswordRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password does not match existing records.",
+        )
+    current_user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+    return {"message": "Password updated successfully."}
+
 
 
 @router.post(

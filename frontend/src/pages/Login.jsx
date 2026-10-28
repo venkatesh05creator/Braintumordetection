@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, X, Stethoscope, UserCheck } from 'lucide-react';
+import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, X, Stethoscope, UserCheck, Shield } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import ThemeToggle from '../components/ThemeToggle';
 import { authAPI } from '../api/client';
@@ -49,7 +49,9 @@ export default function Login() {
     setPassword(demoPass);
     const result = await login(demoEmail, demoPass);
     if (result.success) {
-      navigate(result.role === 'doctor' ? '/doctor' : '/patient');
+      if (result.role === 'admin') navigate('/admin');
+      else if (result.role === 'doctor') navigate('/doctor');
+      else navigate('/patient');
     }
   };
 
@@ -189,28 +191,28 @@ export default function Login() {
               <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
               <button
                 type="button"
                 onClick={() => handleDemoLogin('dr.demo@neuroscan.ai', 'DemoPass123')}
                 disabled={isLoading}
                 style={{
-                  padding: '0.65rem 0.5rem',
+                  padding: '0.65rem 0.35rem',
                   borderRadius: 'var(--radius-md, 8px)',
                   border: '1px solid rgba(13, 148, 136, 0.35)',
                   background: 'rgba(13, 148, 136, 0.08)',
                   color: '#2dd4bf',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.4rem',
+                  gap: '0.35rem',
                   transition: 'all 0.2s ease',
                 }}
               >
-                <Stethoscope size={15} /> Demo Doctor
+                <Stethoscope size={14} /> Doctor
               </button>
 
               <button
@@ -218,22 +220,45 @@ export default function Login() {
                 onClick={() => handleDemoLogin('pt.demo@neuroscan.ai', 'DemoPass123')}
                 disabled={isLoading}
                 style={{
-                  padding: '0.65rem 0.5rem',
+                  padding: '0.65rem 0.35rem',
                   borderRadius: 'var(--radius-md, 8px)',
                   border: '1px solid rgba(56, 189, 248, 0.35)',
                   background: 'rgba(56, 189, 248, 0.08)',
                   color: '#38bdf8',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.4rem',
+                  gap: '0.35rem',
                   transition: 'all 0.2s ease',
                 }}
               >
-                <UserCheck size={15} /> Demo Patient
+                <UserCheck size={14} /> Patient
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('admin@neuroscan.ai', 'DemoPass123')}
+                disabled={isLoading}
+                style={{
+                  padding: '0.65rem 0.35rem',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  border: '1px solid rgba(148, 163, 184, 0.35)',
+                  background: 'rgba(148, 163, 184, 0.08)',
+                  color: '#cbd5e1',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Shield size={14} /> Admin
               </button>
             </div>
           </div>

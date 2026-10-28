@@ -47,6 +47,7 @@ from utils.security import hash_password
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger("seed_demo")
 
+DEMO_ADMIN_EMAIL = "admin@neuroscan.ai"
 DEMO_DOCTOR_EMAIL = "dr.demo@neuroscan.ai"
 DEMO_PATIENT_EMAIL = "pt.demo@neuroscan.ai"
 DEMO_PATIENT2_EMAIL = "pt2.demo@neuroscan.ai"
@@ -169,7 +170,7 @@ async def _delete_demo_data() -> None:
                 .options(selectinload(User.patient_profile))
                 .where(
                     User.email.in_(
-                        [DEMO_DOCTOR_EMAIL, DEMO_PATIENT_EMAIL, DEMO_PATIENT2_EMAIL]
+                        [DEMO_ADMIN_EMAIL, DEMO_DOCTOR_EMAIL, DEMO_PATIENT_EMAIL, DEMO_PATIENT2_EMAIL]
                     )
                 )
             )
@@ -202,6 +203,14 @@ async def _delete_demo_data() -> None:
 async def _create_users() -> tuple[User, User, User]:
     """Create the demo doctor and two linked patient accounts."""
     async with AsyncSessionLocal() as db:
+        admin = User(
+            email=DEMO_ADMIN_EMAIL,
+            hashed_password=hash_password(DEMO_PASSWORD),
+            full_name="System Administrator",
+            role=UserRole.ADMIN,
+            is_active=True,
+            is_verified=True,
+        )
         doctor = User(
             email=DEMO_DOCTOR_EMAIL,
             hashed_password=hash_password(DEMO_PASSWORD),
@@ -226,7 +235,7 @@ async def _create_users() -> tuple[User, User, User]:
             is_active=True,
             is_verified=True,
         )
-        db.add_all([doctor, patient_user, patient2_user])
+        db.add_all([admin, doctor, patient_user, patient2_user])
         await db.flush()
 
         db.add_all(

@@ -97,7 +97,7 @@ export default function Sidebar() {
       </div>
 
       {/* Profile Card — Glass */}
-      <div className="sidebar-profile-card">
+      <div className="sidebar-profile-card" onClick={() => navigate(user?.role === "doctor" ? "/doctor/settings" : user?.role === "patient" ? "/patient/settings" : "/admin/settings")} style={{ cursor: "pointer" }} title="View Settings & Profile">
         <div className="sidebar-profile-avatar">{initials}</div>
         <div className="sidebar-profile-info" style={{ flex: 1, minWidth: 0 }}>
           <div className="sidebar-profile-name">
@@ -155,14 +155,14 @@ export default function Sidebar() {
           </NavLink>
         )}
 
-        <button
-          onClick={() => {}}
-          className="nav-item"
-          style={{ width: '100%', cursor: 'pointer', border: 'none', background: 'none', padding: '0.5rem 0.75rem', fontSize: '0.82rem', textAlign: 'left' }}
+        <NavLink
+          to={user?.role === 'doctor' ? '/doctor/settings' : user?.role === 'patient' ? '/patient/settings' : '/admin/settings'}
+          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}
         >
           <span className="nav-icon"><Settings size={15} /></span>
           Settings
-        </button>
+        </NavLink>
 
         <div
           className="nav-item"

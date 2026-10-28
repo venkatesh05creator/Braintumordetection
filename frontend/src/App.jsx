@@ -30,6 +30,7 @@ const Notifications = lazy(() => import('./pages/doctor/Notifications'));
 const Messages = lazy(() => import('./pages/Messages'));
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // ── Fallback Loader ───────────────────────────────────────────────────────────
 
@@ -151,6 +152,11 @@ export default function App() {
               <AppLayout><AIAssistant /></AppLayout>
             </RequireAuth>
           } />
+                    <Route path="/patient/settings" element={
+            <RequireAuth role="patient">
+              <AppLayout><Settings /></AppLayout>
+            </RequireAuth>
+          } />
           <Route path="/patient/messages" element={
             <RequireAuth role="patient">
               <AppLayout><Messages /></AppLayout>
@@ -188,6 +194,11 @@ export default function App() {
               <AppLayout><AIAssistant /></AppLayout>
             </RequireAuth>
           } />
+                    <Route path="/doctor/settings" element={
+            <RequireAuth role="doctor">
+              <AppLayout><Settings /></AppLayout>
+            </RequireAuth>
+          } />
           <Route path="/doctor/notifications" element={
             <RequireAuth role="doctor">
               <AppLayout><Notifications /></AppLayout>
@@ -196,6 +207,16 @@ export default function App() {
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="/admin/settings" element={
+            <RequireAuth role="admin">
+              <AppLayout><Settings /></AppLayout>
+            </RequireAuth>
+          } />
+          <Route path="/settings" element={
+            <RequireAuth>
+              <AppLayout><Settings /></AppLayout>
+            </RequireAuth>
+          } />
         </Routes>
       </Suspense>
     </BrowserRouter>
