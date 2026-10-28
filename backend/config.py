@@ -5,7 +5,7 @@ No secrets are ever hardcoded.
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Union
 
 # pyrefly: ignore [missing-import]
 from pydantic import field_validator
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./brain_tumor.db"
 
     # ── CORS ─────────────────────────────────────────────────────────────────
-    CORS_ORIGINS: List[str] = [
+    CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:5173",
         "http://localhost:3000",
         "https://braintumordetection-ten.vercel.app",
@@ -69,7 +69,18 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, v):
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            v = v.strip()
+            if not v:
+                return ["http://localhost:5173", "https://braintumordetection-ten.vercel.app"]
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(origin).strip() for origin in parsed if str(origin).strip()]
+                except Exception:
+                    pass
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
     # ── AI - Google Gemini (free tier) ───────────────────────────────────────
