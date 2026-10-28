@@ -151,13 +151,31 @@ class HuggingFaceAgent:
             logger.warning("%s: %s", msg, response.text[:200])
             return None, msg
 
-        predictions = response.json()
-        if not isinstance(predictions, list) or not predictions:
-            return None, f"HF model {model_id} returned invalid prediction structure"
+        try:
+            data = response.json()
+        except Exception:
+            return None, f"HF model {model_id} returned non-JSON response: {response.text[:120]}"
 
-        # predictions = [{"label": "glioma", "score": 0.95}, ...]
-        top = max(predictions, key=lambda x: x.get("score", 0))
-        label = top.get("label", "").lower().replace(" ", "_")
+        if isinstance(data, dict):
+            if "error" in data:
+                return None, f"HF model {model_id}: {data['error']}"
+            if "label" in data and "score" in data:
+                data = [data]
+            else:
+                return None, f"HF model {model_id} returned unrecognized response"
+
+        if isinstance(data, list) and data and isinstance(data[0], list):
+            data = data[0]
+
+        if not isinstance(data, list) or not data:
+            return None, f"HF model {model_id} returned empty or invalid prediction structure"
+
+        predictions = data
+        top = max(predictions, key=lambda x: x.get("score", 0) if isinstance(x, dict) else 0)
+        if not isinstance(top, dict):
+            return None, f"HF model {model_id} returned invalid item format"
+
+        label = str(top.get("label", "")).lower().replace(" ", "_")
         score = float(top.get("score", 0.5))
 
         # Map label to our taxonomy

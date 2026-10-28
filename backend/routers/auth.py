@@ -125,6 +125,10 @@ async def login(request: Request, body: LoginRequest, db: AsyncSession = Depends
             detail="Account is deactivated. Contact support.",
         )
 
+    if user.role == UserRole.DOCTOR and not user.is_verified and not settings.REQUIRE_DOCTOR_VERIFICATION:
+        user.is_verified = True
+        await db.commit()
+
     return TokenResponse(
         access_token=create_access_token(user.id, user.role),
         refresh_token=create_refresh_token(user.id, user.role),

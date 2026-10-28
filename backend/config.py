@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REQUIRE_DOCTOR_VERIFICATION: bool = False
+    @field_validator("REQUIRE_DOCTOR_VERIFICATION", mode="before")
+    @classmethod
+    def parse_require_doctor_verification(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower() in ("true", "1", "yes")
+        return bool(v)
 
     # ── Database ─────────────────────────────────────────────────────────────
     # Supabase: postgresql+asyncpg://user:pass@host:5432/postgres

@@ -106,6 +106,32 @@ async def list_doctors(
     ]
 
 
+@router.get("/directory", summary="List all patients (for appointment scheduling and lookup)")
+async def list_patient_directory(
+    db: AsyncSession = Depends(get_db),
+    doctor: User = Depends(require_doctor),
+):
+    """Return all registered patients for appointment scheduling."""
+    result = await db.execute(
+        select(Patient)
+        .options(selectinload(Patient.user))
+        .order_by(Patient.full_name.asc())
+    )
+    patients = result.scalars().all()
+    return [
+        {
+            "id": p.id,
+            "user_id": p.user_id,
+            "full_name": p.full_name or (p.user.full_name if p.user else f"Patient #{p.id}"),
+            "email": p.user.email if p.user else "",
+            "risk_level": p.risk_level or "low",
+            "tumor_type": p.tumor_type or "notumor",
+            "is_connected": p.doctor_id == doctor.id,
+        }
+        for p in patients
+    ]
+
+
 # ── Patient sends connection request to doctor ───────────────────────────────
 @router.post("/connections/request", summary="Patient sends connection request to doctor")
 async def request_connection(

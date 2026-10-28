@@ -112,6 +112,17 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
+    # Ensure existing doctors are verified if verification requirement is disabled
+    if not settings.REQUIRE_DOCTOR_VERIFICATION:
+        try:
+            async with engine.begin() as conn:
+                if settings.is_sqlite or is_fallback:
+                    await conn.execute(text("UPDATE users SET is_verified = 1 WHERE role = 'doctor' OR role = 'DOCTOR'"))
+                else:
+                    await conn.execute(text("UPDATE users SET is_verified = TRUE WHERE role = 'DOCTOR'"))
+        except Exception:
+            pass
+
     # Automatically apply migrations for SQLite
     if settings.is_sqlite or is_fallback:
         async with engine.begin() as conn:

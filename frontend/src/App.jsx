@@ -205,9 +205,7 @@ export default function App() {
             </RequireAuth>
           } />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-                  <Route path="/admin/settings" element={
+          <Route path="/admin/settings" element={
             <RequireAuth role="admin">
               <AppLayout><Settings /></AppLayout>
             </RequireAuth>
@@ -217,6 +215,9 @@ export default function App() {
               <AppLayout><Settings /></AppLayout>
             </RequireAuth>
           } />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

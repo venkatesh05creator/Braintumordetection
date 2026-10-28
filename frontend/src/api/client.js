@@ -123,6 +123,7 @@ export const scansAPI = {
 
 export const patientsAPI = {
   list: () => apiClient.get('/patients/'),
+  listDirectory: () => apiClient.get('/patients/directory'),
   get: (patientId) => apiClient.get(`/patients/${patientId}`),
   update: (patientId, data) => apiClient.patch(`/patients/${patientId}`, data),
   listDoctors: () => apiClient.get('/patients/doctors'),

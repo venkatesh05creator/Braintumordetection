@@ -174,9 +174,14 @@ async def create_appointment(
         if not patient:
             raise HTTPException(status_code=400, detail="Patient profile not found. Please complete registration.")
         patient_id = patient.id
+        doctor_id = payload.doctor_id or patient.doctor_id
         if not doctor_id:
-            raise HTTPException(status_code=400, detail="Doctor selection is required.")
-        doctor_id = doctor_id
+            doc_any = await db.execute(select(User).where(User.role == UserRole.DOCTOR).limit(1))
+            any_doc = doc_any.scalar_one_or_none()
+            if any_doc:
+                doctor_id = any_doc.id
+            else:
+                raise HTTPException(status_code=400, detail="Doctor selection is required.")
         initial_status = "requested"
 
         # Validate doctor
@@ -197,7 +202,10 @@ async def create_appointment(
         pat_res = await db.execute(select(Patient).where(Patient.id == payload.patient_id))
         patient = pat_res.scalar_one_or_none()
         if not patient:
-            raise HTTPException(status_code=404, detail="Patient record not found.")
+            pat_user = await db.execute(select(Patient).where(Patient.user_id == payload.patient_id))
+            patient = pat_user.scalar_one_or_none()
+            if not patient:
+                raise HTTPException(status_code=404, detail="Patient record not found.")
         patient_id = patient.id
         initial_status = "scheduled"
 

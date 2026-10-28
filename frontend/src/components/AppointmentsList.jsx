@@ -53,8 +53,14 @@ export default function AppointmentsList({ previewOnly = false }) {
         ?.catch(() => {});
     } else if (user?.role === 'doctor') {
       patientsAPI.list?.()
-        ?.then(res => {
-          const pts = res.data || [];
+        ?.then(async (res) => {
+          let pts = res.data || [];
+          if (pts.length === 0 && patientsAPI.listDirectory) {
+            try {
+              const dirRes = await patientsAPI.listDirectory();
+              pts = dirRes.data || [];
+            } catch (err) {}
+          }
           setPatients(pts);
           if (pts.length > 0) setSelectedPatientId(String(pts[0].id));
         })
@@ -76,9 +82,21 @@ export default function AppointmentsList({ previewOnly = false }) {
       };
 
       if (user?.role === 'doctor') {
-        payload.patient_id = parseInt(selectedPatientId, 10);
+        const ptId = selectedPatientId || (patients[0]?.id ? String(patients[0].id) : null);
+        if (!ptId) {
+          setNotification({ type: 'error', message: 'Please select a patient or invite a patient first.' });
+          setBookingLoading(false);
+          return;
+        }
+        payload.patient_id = parseInt(ptId, 10);
       } else {
-        payload.doctor_id = parseInt(selectedDoctorId, 10);
+        const docId = selectedDoctorId || (doctors[0]?.id ? String(doctors[0].id) : null);
+        if (!docId) {
+          setNotification({ type: 'error', message: 'Please select a doctor.' });
+          setBookingLoading(false);
+          return;
+        }
+        payload.doctor_id = parseInt(docId, 10);
       }
 
       await appointmentsAPI.create(payload);
@@ -484,7 +502,7 @@ export default function AppointmentsList({ previewOnly = false }) {
                     >
                       {patients.map((p) => (
                         <option key={p.id} value={p.id} style={{ background: '#0b1329' }}>
-                          {p.full_name} ({p.risk_level || 'Patient'})
+                          {p.full_name || `Patient #${p.id}`} {p.email ? `(${p.email})` : ''} - {p.risk_level || 'Standard'}
                         </option>
                       ))}
                     </select>
