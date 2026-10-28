@@ -13,7 +13,7 @@ services:
       - key: DEBUG
         value: false
       - key: DATABASE_URL
-        value: sqlite+aiosqlite:///./brain_tumor.db
+        value: postgresql+asyncpg://postgres:Venky%40050805@db.xhqqktsoevhwuweybnxt.supabase.co:5432/postgres
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
