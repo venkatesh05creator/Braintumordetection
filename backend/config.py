@@ -43,6 +43,19 @@ class Settings(BaseSettings):
     # Supabase: postgresql+asyncpg://user:pass@host:5432/postgres
     # Local dev: sqlite+aiosqlite:///./brain_tumor.db
     DATABASE_URL: str = "sqlite+aiosqlite:///./brain_tumor.db"
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            if v.startswith("postgresql://") and not v.startswith("postgresql+"):
+                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            if v.startswith("sqlite://") and not v.startswith("sqlite+"):
+                return v.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return v
+
 
     # ── CORS ─────────────────────────────────────────────────────────────────
     CORS_ORIGINS: Union[List[str], str] = [

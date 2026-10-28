@@ -19,13 +19,25 @@ from config import settings
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 
+def _normalize_db_url(url: str) -> str:
+    url = (url or "").strip()
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("sqlite://") and not url.startswith("sqlite+"):
+        return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+    return url
+
+
 def _build_engine():
+    db_url = _normalize_db_url(settings.DATABASE_URL)
     kwargs = {
-        "url": settings.DATABASE_URL,
+        "url": db_url,
         "echo": settings.DEBUG,
     }
     # SQLite needs special pool settings to work in async context
-    if settings.is_sqlite:
+    if "sqlite" in db_url:
         kwargs.update(
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
@@ -80,43 +92,44 @@ async def init_db() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
     # Automatically apply migrations for SQLite
-    async with engine.begin() as conn:
-        # Add new columns to scans table
-        for col in ["gradcam_glioma_url", "gradcam_meningioma_url", "gradcam_pituitary_url"]:
+    if settings.is_sqlite:
+        async with engine.begin() as conn:
+            # Add new columns to scans table
+            for col in ["gradcam_glioma_url", "gradcam_meningioma_url", "gradcam_pituitary_url"]:
+                try:
+                    await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col} VARCHAR(1024)"))
+                except Exception:
+                    pass
             try:
-                await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col} VARCHAR(1024)"))
+                await conn.execute(text("ALTER TABLE scans ADD COLUMN tumor_burden_pct FLOAT"))
             except Exception:
                 pass
-        try:
-            await conn.execute(text("ALTER TABLE scans ADD COLUMN tumor_burden_pct FLOAT"))
-        except Exception:
-            pass
-        # 3D volumetry columns (DICOM / NIfTI uploads)
-        for col in [
-            "tumor_volume_cm3 FLOAT",
-            "brain_volume_cm3 FLOAT",
-            "volume_method VARCHAR(32)",
-            "voxel_spacing VARCHAR(50)",
-            "volume_slices INTEGER",
-        ]:
-            try:
-                await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col}"))
-            except Exception:
-                pass
+            # 3D volumetry columns (DICOM / NIfTI uploads)
+            for col in [
+                "tumor_volume_cm3 FLOAT",
+                "brain_volume_cm3 FLOAT",
+                "volume_method VARCHAR(32)",
+                "voxel_spacing VARCHAR(50)",
+                "volume_slices INTEGER",
+            ]:
+                try:
+                    await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col}"))
+                except Exception:
+                    pass
 
-        # Calibration ledger columns (doctor verdicts on reviewed scans)
-        for col in [
-            "doctor_verdict VARCHAR(20)",
-            "doctor_verdict_at DATETIME",
-            "doctor_verdict_note TEXT",
-        ]:
+            # Calibration ledger columns (doctor verdicts on reviewed scans)
+            for col in [
+                "doctor_verdict VARCHAR(20)",
+                "doctor_verdict_at DATETIME",
+                "doctor_verdict_note TEXT",
+            ]:
+                try:
+                    await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col}"))
+                except Exception:
+                    pass
+
+            # Add new columns to messages table
             try:
-                await conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col}"))
+                await conn.execute(text("ALTER TABLE messages ADD COLUMN image_url VARCHAR(1024)"))
             except Exception:
                 pass
-
-        # Add new columns to messages table
-        try:
-            await conn.execute(text("ALTER TABLE messages ADD COLUMN image_url VARCHAR(1024)"))
-        except Exception:
-            pass
