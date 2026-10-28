@@ -11,11 +11,11 @@ services:
       - key: DEBUG
         value: false
       - key: DATABASE_URL
-        sync: false  # Set in Render dashboard → Supabase PostgreSQL URL
+        value: sqlite+aiosqlite:///./brain_tumor.db
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        sync: false  # Set to your Vercel frontend URL
+        value: "https://braintumordetection-ten.vercel.app,http://localhost:5173"
       - key: GEMINI_API_KEY
         sync: false  # Get free at: https://aistudio.google.com/app/apikey
       - key: HF_API_KEY
