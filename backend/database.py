@@ -6,8 +6,10 @@ Supports:
   - PostgreSQL + asyncpg (Supabase production, free tier)
 
 The correct driver is selected automatically based on DATABASE_URL prefix.
+Includes resilient fallback to ensure high availability on hosting platforms.
 """
 
+import logging
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -15,6 +17,8 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import StaticPool
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 
 # ── Engine ────────────────────────────────────────────────────────────────────
@@ -30,8 +34,8 @@ def _normalize_db_url(url: str) -> str:
     return url
 
 
-def _build_engine():
-    db_url = _normalize_db_url(settings.DATABASE_URL)
+def _build_engine(target_url: str | None = None):
+    db_url = _normalize_db_url(target_url or settings.DATABASE_URL)
     kwargs = {
         "url": db_url,
         "echo": settings.DEBUG,
@@ -85,14 +89,29 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 # ── Schema initialization ─────────────────────────────────────────────────────
 
 async def init_db() -> None:
-    """Create all tables. Called once on app startup."""
+    """Create all tables. Called once on app startup with resilient fallback."""
+    global engine, AsyncSessionLocal
     from sqlalchemy import text
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    is_fallback = False
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except (OSError, Exception) as exc:
+        logger.warning(
+            "⚠️ Could not connect to primary DATABASE_URL (%s): %s. "
+            "Falling back to local SQLite to ensure the platform starts and serves requests.",
+            settings.DATABASE_URL, exc
+        )
+        fallback_url = "sqlite+aiosqlite:///./brain_tumor.db"
+        engine = _build_engine(fallback_url)
+        AsyncSessionLocal.configure(bind=engine)
+        is_fallback = True
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
     # Automatically apply migrations for SQLite
-    if settings.is_sqlite:
+    if settings.is_sqlite or is_fallback:
         async with engine.begin() as conn:
             # Add new columns to scans table
             for col in ["gradcam_glioma_url", "gradcam_meningioma_url", "gradcam_pituitary_url"]:
