@@ -43,7 +43,9 @@ const useAuthStore = create(
           } else if (typeof detail === 'string') {
             msg = detail;
           } else if (!err.response) {
-            msg = 'Cannot connect to backend server. Please verify Uvicorn is running on port 8000.';
+            msg = 'Cannot connect to backend server. Please verify the backend API is running.';
+          } else if (err.response.status === 405 || err.response.status === 404) {
+            msg = 'Backend API is not reachable (HTTP ' + err.response.status + '). Please ensure the backend is deployed and VITE_API_BASE_URL is set.';
           }
           set({ error: msg, isLoading: false });
           return { success: false, error: msg };
@@ -64,7 +66,9 @@ const useAuthStore = create(
           } else if (typeof detail === 'string') {
             msg = detail;
           } else if (!err.response) {
-            msg = 'Cannot connect to backend server. Please verify Uvicorn is running on port 8000.';
+            msg = 'Cannot connect to backend server. Please verify the backend API is running.';
+          } else if (err.response.status === 405 || err.response.status === 404) {
+            msg = 'Backend API is not reachable (HTTP ' + err.response.status + '). Please ensure the backend is deployed and VITE_API_BASE_URL is set in Vercel.';
           }
           set({ error: msg, isLoading: false });
           return { success: false, error: msg };

@@ -146,9 +146,7 @@ cors_kwargs = {
     "allow_methods": ["*"],
     "allow_headers": ["*"],
 }
-if settings.is_development:
-    # Allow localhost and 127.0.0.1 on development ports during development
-    cors_kwargs["allow_origin_regex"] = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+cors_kwargs["allow_origin_regex"] = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$"
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
