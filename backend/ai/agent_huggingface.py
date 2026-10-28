@@ -8,18 +8,22 @@ Free API key: https://huggingface.co/settings/tokens (READ token)
 Rate limits: ~30 req/minute on free tier.
 """
 
+from __future__ import annotations
+
 import io
 import logging
+from typing import TYPE_CHECKING
 
 import httpx
 from PIL import Image
 
+from ai.orchestrator import AgentResult
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-# HF Inference API endpoint
-HF_API_BASE = "https://api-inference.huggingface.co/models"
+# HF Inference Router endpoint (replaces deprecated api-inference.huggingface.co)
+HF_API_BASE = "https://router.huggingface.co/hf-inference/models"
 
 # Map HuggingFace label outputs to tumor categories
 # ResNet-50 / ViT models trained on brain tumor datasets produce these labels
@@ -48,32 +52,37 @@ class HuggingFaceAgent:
     Tries multiple models in order of preference; falls back gracefully.
     """
 
-    # Ordered list of models to try (first = preferred)
+    # Ordered list of models to try
     MODELS = [
-        "Devarshi18/brain_tumor_classification",   # Brain-specific fine-tune
-        "microsoft/resnet-50",                      # General vision backbone
+        "microsoft/resnet-50",
+        "google/vit-base-patch16-224",
     ]
 
     def __init__(self):
         self._headers = {"Authorization": f"Bearer {settings.HF_API_KEY}"}
         logger.info("HuggingFaceAgent initialized")
 
-    async def analyze(self, image_bytes: bytes) -> "AgentResult":  # noqa: F821
+    async def analyze(self, image_bytes: bytes) -> AgentResult:
         """
         Send image to HuggingFace Inference API for classification.
 
         Tries each model in MODELS list until one succeeds.
         """
-        from ai.orchestrator import AgentResult
+        last_error_detail = "All HuggingFace models unavailable"
 
         for model_id in self.MODELS:
             try:
-                result = await self._call_api(image_bytes, model_id)
+                result, detail = await self._call_api(image_bytes, model_id)
                 if result:
                     return result
+                if detail:
+                    last_error_detail = detail
+            except httpx.ConnectError:
+                last_error_detail = "HuggingFace router unreachable (DNS/Network connection error)"
+                logger.warning("HF model %s connection failed", model_id)
             except Exception as exc:
+                last_error_detail = f"HuggingFace request failed: {exc}"
                 logger.warning("HF model %s failed: %s", model_id, exc)
-                continue
 
         # All models failed
         return AgentResult(
@@ -81,17 +90,15 @@ class HuggingFaceAgent:
             agent_name="HuggingFace ViT",
             tumor_type=None,
             confidence=None,
-            reasoning="All HuggingFace models unavailable",
+            reasoning=last_error_detail,
             success=False,
             error="all_models_failed",
         )
 
     async def _call_api(
         self, image_bytes: bytes, model_id: str
-    ) -> "AgentResult | None":  # noqa: F821
+    ) -> tuple[AgentResult | None, str | None]:
         """Call a single HuggingFace Inference API endpoint."""
-        from ai.orchestrator import AgentResult
-
         url = f"{HF_API_BASE}/{model_id}"
 
         async with httpx.AsyncClient(timeout=25.0) as client:
@@ -104,20 +111,25 @@ class HuggingFaceAgent:
                 },
             )
 
+        if response.status_code == 402:
+            msg = "HuggingFace account has no remaining inference credits (HTTP 402). Purchase pre-paid credits or subscribe to HF PRO to activate this agent."
+            logger.warning("HF model %s: %s", model_id, msg)
+            return None, msg
+
         if response.status_code == 503:
-            # Model is loading — this is normal for cold starts on HF free tier
-            logger.info("HF model %s is loading (503), skipping", model_id)
-            return None
+            # Model is loading
+            msg = f"HF model {model_id} is cold-starting (HTTP 503)."
+            logger.info(msg)
+            return None, msg
 
         if response.status_code != 200:
-            logger.warning(
-                "HF model %s returned HTTP %s", model_id, response.status_code
-            )
-            return None
+            msg = f"HF model {model_id} returned HTTP {response.status_code}"
+            logger.warning("%s: %s", msg, response.text[:200])
+            return None, msg
 
         predictions = response.json()
         if not isinstance(predictions, list) or not predictions:
-            return None
+            return None, f"HF model {model_id} returned invalid prediction structure"
 
         # predictions = [{"label": "glioma", "score": 0.95}, ...]
         top = max(predictions, key=lambda x: x.get("score", 0))
@@ -135,17 +147,20 @@ class HuggingFaceAgent:
             else:
                 tumor_type = "notumor"
 
-        return AgentResult(
-            agent_id="huggingface_vit",
-            agent_name="HuggingFace ViT",
-            tumor_type=tumor_type,
-            confidence=score,
-            reasoning=f"HuggingFace {model_id} classified image as '{label}' "
-                       f"with score {score:.2%}.",
-            success=True,
-            metadata={
-                "model_id": model_id,
-                "raw_label": label,
-                "all_predictions": predictions[:3],
-            },
+        return (
+            AgentResult(
+                agent_id="huggingface_vit",
+                agent_name="HuggingFace ViT",
+                tumor_type=tumor_type,
+                confidence=score,
+                reasoning=f"HuggingFace {model_id} classified image as '{label}' "
+                           f"with score {score:.2%}.",
+                success=True,
+                metadata={
+                    "model_id": model_id,
+                    "raw_label": label,
+                    "all_predictions": predictions[:3],
+                },
+            ),
+            None,
         )

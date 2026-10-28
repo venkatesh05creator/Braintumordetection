@@ -10,12 +10,12 @@ import {
 
 // Real per-scan 2D tumor burden (computed from segmentation masks by the backend)
 const burdenOf = (scan) => (scan?.tumor_burden_pct ?? null);
-const fmtBurden = (v) => (v == null ? '—' : `${Number(v).toFixed(1)}%`);
-// final_confidence is a 0-1 probability (0.82 = 82%), not a bare fraction — label it as a probability
-const fmtPct = (v) => (v == null ? '—' : `${(Number(v) * 100).toFixed(1)}%`);
-const fmtSigned = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${Number(v).toFixed(1)}`);
+const fmtBurden = (v) => (v == null ? '-' : `${Number(v).toFixed(1)}%`);
+// final_confidence is a 0-1 probability (0.82 = 82%), not a bare fraction: label it as a probability
+const fmtPct = (v) => (v == null ? '-' : `${(Number(v) * 100).toFixed(1)}%`);
+const fmtSigned = (v) => (v == null ? '-' : `${v > 0 ? '+' : ''}${Number(v).toFixed(1)}`);
 // True 3D volume in cm³ (only present on DICOM / NIfTI uploads with voxel spacing)
-const fmtVol = (v) => (v == null ? '—' : `${Number(v).toFixed(2)} cm³`);
+const fmtVol = (v) => (v == null ? '-' : `${Number(v).toFixed(2)} cm³`);
 
 export default function PatientDashboard() {
   const { user } = useAuthStore();
@@ -96,12 +96,12 @@ export default function PatientDashboard() {
         boxShadow: '0 0 40px rgba(0,229,200,0.06), 4px 4px 20px rgba(0,0,0,0.5), -2px -2px 10px rgba(255,255,255,0.04)',
       }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: 4 }}>Hello, <span className="text-gradient-cyan">{user?.full_name?.split(' ')[0]}</span> 👋</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Your personal health portal · AI-assisted tumor monitoring</p>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: 4 }}>Hello, <span className="text-gradient-cyan">{user?.full_name?.split(' ')[0]}</span></h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Your personal health portal &middot; AI-assisted tumor monitoring</p>
         </div>
         {hasScans && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>ID: <strong style={{ color: 'var(--accent-cyan)' }}>{user?.patient_id ?? '—'}</strong></span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>ID: <strong style={{ color: 'var(--accent-cyan)' }}>{user?.patient_id ?? '-'}</strong></span>
             <span className="badge badge-cyan">Active Monitoring</span>
           </div>
         )}
@@ -161,11 +161,11 @@ export default function PatientDashboard() {
             {[{
               title: 'Tumor-to-Brain Ratio', icon: <Activity size={14} />, value: fmtBurden(latestBurden), sub: burdenDelta != null ? `${fmtSigned(burdenDelta)} pp vs previous scan` : '2D area ratio • no prior scan', color: burdenDelta == null ? 'var(--text-muted)' : burdenDelta > 0 ? 'var(--accent-red)' : 'var(--accent-green)', bg: burdenDelta == null ? 'rgba(148,163,184,0.06)' : burdenDelta > 0 ? 'rgba(239,68,68,0.07)' : 'rgba(16,185,129,0.07)', border: burdenDelta == null ? 'rgba(148,163,184,0.15)' : burdenDelta > 0 ? 'rgba(239,68,68,0.18)' : 'rgba(16,185,129,0.18)'
             }, {
-              title: 'Tumor Probability', icon: <Brain size={14} />, value: fmtPct(latestScan?.final_confidence), sub: `Agreement: ${latestScan?.agreement_level || '—'}`, color: 'var(--accent-cyan)', bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.18)'
+              title: 'Tumor Probability', icon: <Brain size={14} />, value: fmtPct(latestScan?.final_confidence), sub: `Agreement: ${latestScan?.agreement_level || 'Pending'}`, color: 'var(--accent-cyan)', bg: 'rgba(0,229,200,0.07)', border: 'rgba(0,229,200,0.18)'
             }, {
-              title: 'Tumor Volume', icon: <Activity size={14} />, value: fmtVol(latestScan?.tumor_volume_cm3), sub: latestScan?.volume_method ? (latestScan.volume_method === 'nifti' ? `3D volume • ${latestScan.voxel_spacing || ''}` : `Single slice • ${latestScan.voxel_spacing || ''}`) : '2D slice — no volume data', color: latestScan?.tumor_volume_cm3 != null ? 'var(--accent-purple)' : 'var(--text-muted)', bg: 'rgba(168,85,247,0.07)', border: 'rgba(168,85,247,0.18)'
+              title: 'Tumor Volume', icon: <Activity size={14} />, value: fmtVol(latestScan?.tumor_volume_cm3), sub: latestScan?.volume_method ? (latestScan.volume_method === 'nifti' ? `3D volume • ${latestScan.voxel_spacing || ''}` : `Single slice • ${latestScan.voxel_spacing || ''}`) : '2D slice: no volumetric data', color: latestScan?.tumor_volume_cm3 != null ? 'var(--accent-blue)' : 'var(--text-muted)', bg: 'rgba(59,130,246,0.07)', border: 'rgba(59,130,246,0.18)'
             }, {
-              title: 'KPS Rating', icon: <Users size={14} />, value: '—', sub: 'Not recorded', color: 'var(--accent-orange)', bg: 'rgba(249,115,22,0.07)', border: 'rgba(249,115,22,0.18)'
+              title: 'KPS Rating', icon: <Users size={14} />, value: 'N/A', sub: 'Not recorded', color: 'var(--accent-orange)', bg: 'rgba(249,115,22,0.07)', border: 'rgba(249,115,22,0.18)'
             }].map(card => (
               <div key={card.title} style={{
                 background: card.bg, backdropFilter: 'blur(20px)', border: `1px solid ${card.border}`,
@@ -197,7 +197,7 @@ export default function PatientDashboard() {
               </div>
               {chartData.length === 0 ? (
                 <div style={{ border: '1px dashed var(--border-subtle)', borderRadius: 10, padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                  No symptom logs yet — log your daily symptoms to see your trend here.
+                  No symptom logs yet. Log your daily symptoms to track your trend.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
@@ -215,13 +215,13 @@ export default function PatientDashboard() {
               </p>
             </div>
 
-            {/* Molecular Profile — honest placeholder; markers require tissue pathology */}
+            {/* Molecular Profile: honest placeholder; markers require tissue pathology */}
             <div className="molecular-profile-card">
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Genomic Biomarkers</span>
               <div style={{ border: '1px dashed var(--border-subtle)', borderRadius: 10, padding: '0.9rem 0.75rem', textAlign: 'center', marginTop: '0.6rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Not recorded — requires pathology</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Not recorded: requires biopsy pathology</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
-                  IDH, MGMT, 1p/19q and Ki-67 come from tissue pathology — they cannot be derived from an MRI scan. A pathology report will populate this panel.
+                  IDH, MGMT, 1p/19q and Ki-67 require tissue pathology and cannot be derived from MRI scans alone. A surgical pathology report will populate this panel.
                 </div>
               </div>
             </div>
@@ -258,9 +258,9 @@ export default function PatientDashboard() {
                         <td>MRI T1w-Contrast</td>
                         <td>{fmtBurden(b)}</td>
                         <td style={{ color: delta == null ? 'var(--text-muted)' : delta > 0 ? 'var(--accent-red)' : delta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' }}>
-                          {delta == null ? '—' : `${fmtSigned(delta)} pp`}
+                          {delta == null ? '-' : `${fmtSigned(delta)} pp`}
                         </td>
-                        <td>{scan.tumor_location || '—'}</td>
+                        <td>{scan.tumor_location || '-'}</td>
                         <td>{fmtVol(scan.tumor_volume_cm3)}</td>
                         <td>
                           <span className={`badge badge-${scan.agreement_level || 'confirmed'}`} style={{ textTransform: 'capitalize' }}>
@@ -278,7 +278,7 @@ export default function PatientDashboard() {
         </div>
       )}
 
-      {/* 2. Quick Actions Grid — Glass + Neu Cards */}
+      {/* 2. Quick Actions Grid */}
       <h3 style={{ fontSize: '1rem', marginBottom: '1rem', marginTop: hasScans ? '2rem' : 0, display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ width: 4, height: 18, background: 'var(--gradient-cyan)', borderRadius: 2, display: 'inline-block' }} />
         Portal Quick Actions
@@ -286,7 +286,7 @@ export default function PatientDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {[
           { icon: <Upload size={20} />, label: 'Upload MRI Scan', desc: 'Get AI diagnostic report in seconds', to: '/patient/scan', color: 'var(--accent-cyan)', glow: 'rgba(0,229,200,0.12)' },
-          { icon: <Activity size={20} />, label: 'Log Symptoms', desc: 'Track headache, motor & energy levels', to: '/patient/symptoms', color: 'var(--accent-purple)', glow: 'rgba(168,85,247,0.12)' },
+          { icon: <Activity size={20} />, label: 'Log Symptoms', desc: 'Track headache, motor & energy levels', to: '/patient/symptoms', color: 'var(--accent-blue)', glow: 'rgba(59,130,246,0.12)' },
           { icon: <FileText size={20} />, label: 'My Reports', desc: 'View full radiology notes & results', to: '/patient/reports', color: 'var(--accent-green)', glow: 'rgba(34,197,94,0.12)' },
           { icon: <Brain size={20} />, label: 'AI Assistant', desc: 'Discuss symptom queries with NeuroBot', to: '/patient/chatbot', color: 'var(--accent-orange)', glow: 'rgba(249,115,22,0.12)' },
           { icon: <MessageSquare size={20} />, label: 'Specialist Chat', desc: 'Send queries directly to your doctor', to: '/patient/messages', color: 'var(--accent-pink)', glow: 'rgba(236,72,153,0.12)' },
@@ -309,10 +309,10 @@ export default function PatientDashboard() {
         ))}
       </div>
 
-      {/* 3. How It Works — Neumorphic Step Indicators */}
+      {/* 3. How It Works */}
       <div className="glass-card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
         <h3 style={{ marginBottom: '1.5rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 4, height: 18, background: 'var(--gradient-purple)', borderRadius: 2, display: 'inline-block' }} />
+          <span style={{ width: 4, height: 18, background: 'var(--gradient-cyan)', borderRadius: 2, display: 'inline-block' }} />
           How Your AI Analysis Works
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1.5rem' }}>

@@ -5,7 +5,7 @@ import { messagesAPI, patientsAPI, scansAPI, reportsAPI } from '../api/client';
 import { getImageUrl } from '../api/imageUrl';
 import {
   Send, User, MessageSquare, ShieldAlert, Award, Loader2,
-  Paperclip, Trash2, Edit2, X, Image as ImageIcon, Eye
+  Paperclip, Trash2, Edit2, X, Image as ImageIcon, Eye, FileText
 } from 'lucide-react';
 
 export default function Messages() {
@@ -255,7 +255,9 @@ export default function Messages() {
     return (
       <div className="animate-fade-in" style={{ maxWidth: 800, margin: '0 auto' }}>
         <div className="page-header">
-          <h1 className="page-title">💬 Clinical Consultations</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MessageSquare size={24} color="var(--accent-cyan)" /> Clinical Consultations
+          </h1>
           <p className="page-subtitle">Connect with a certified neurological specialist to discuss your MRI scans</p>
         </div>
 
@@ -339,7 +341,9 @@ export default function Messages() {
   return (
     <div className="animate-fade-in" style={{ height: 'calc(100vh - 4rem)', display: 'flex', flexDirection: 'column' }}>
       <div className="page-header" style={{ marginBottom: '1rem' }}>
-        <h1 className="page-title">💬 Clinical Messaging</h1>
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MessageSquare size={24} color="var(--accent-cyan)" /> Clinical Messaging
+        </h1>
         <p className="page-subtitle">Real-time end-to-end encrypted consultations</p>
       </div>
 
@@ -392,7 +396,7 @@ export default function Messages() {
               className="btn btn-outline btn-sm"
               style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', padding: '4px 12px' }}
             >
-              📋 Case Files & Reports
+              <FileText size={14} /> Case Files & Reports
             </button>
           </div>
 
@@ -600,7 +604,7 @@ export default function Messages() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
               <div>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.2rem' }}>
-                  📋 Case Records & Scans
+                  <FileText size={18} color="var(--accent-cyan)" /> Case Records & Scans
                 </h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   MRI Scans & AI Reports
@@ -634,7 +638,7 @@ export default function Messages() {
                             Date: {new Date(r.created_at).toLocaleDateString()}
                           </div>
                           {r.tumor_stage && (
-                            <div style={{ fontSize: '0.75rem', color: 'var(--accent-purple)', marginTop: 2 }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', marginTop: 2 }}>
                               Stage: {r.tumor_stage}
                             </div>
                           )}

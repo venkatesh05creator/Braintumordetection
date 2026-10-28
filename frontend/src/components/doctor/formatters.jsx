@@ -1,10 +1,10 @@
 // Formatting helpers shared by the doctor dashboard sub-components.
 
 export const burdenOf = (scan) => (scan?.tumor_burden_pct ?? null);
-export const fmtBurden = (v) => (v == null ? '—' : `${Number(v).toFixed(1)}%`);
-export const fmtPct = (v) => (v == null ? '—' : `${(Number(v) * 100).toFixed(1)}%`);
-export const fmtSigned = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${Number(v).toFixed(1)}`);
-export const fmtVol = (v) => (v == null ? '—' : `${Number(v).toFixed(2)} cm³`);
+export const fmtBurden = (v) => (v == null ? '-' : `${Number(v).toFixed(1)}%`);
+export const fmtPct = (v) => (v == null ? '-' : `${(Number(v) * 100).toFixed(1)}%`);
+export const fmtSigned = (v) => (v == null ? '-' : `${v > 0 ? '+' : ''}${Number(v).toFixed(1)}`);
+export const fmtVol = (v) => (v == null ? '-' : `${Number(v).toFixed(2)} cm³`);
 
 export const riskBadge = (level) => {
   const map = {

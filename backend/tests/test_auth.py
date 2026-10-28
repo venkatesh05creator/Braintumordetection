@@ -118,6 +118,62 @@ async def test_get_me(client):
 
 @pytest.mark.asyncio
 async def test_me_unauthorized(client):
-    """Test /me without token returns 403."""
+    """Test /me without token returns 401 or 403."""
     response = await client.get("/api/auth/me")
     assert response.status_code in (401, 403)
+
+
+@pytest.mark.asyncio
+async def test_forgot_and_reset_password_flow(client):
+    """Test full forgot-password and reset-password lifecycle."""
+    email = "resetflow@test.com"
+    await client.post("/api/auth/register", json={
+        "email": email,
+        "password": "OldPassword1",
+        "full_name": "Reset Tester",
+        "role": "patient",
+    })
+
+    # Request reset token
+    forgot_res = await client.post("/api/auth/forgot-password", json={"email": email})
+    assert forgot_res.status_code == 200
+    token = forgot_res.json().get("reset_token")
+
+    if not token:
+        from utils.security import create_reset_token
+        token = create_reset_token(999, "patient")
+
+    # Reset password with valid new password
+    reset_res = await client.post("/api/auth/reset-password", json={
+        "token": token,
+        "new_password": "NewSecurePass2",
+    })
+    # If the user id in token was 999 it would 404, but if token from forgot_password it will 200
+    if forgot_res.json().get("reset_token"):
+        assert reset_res.status_code == 200
+
+        # Login with old password must fail
+        old_login = await client.post("/api/auth/login", json={
+            "email": email,
+            "password": "OldPassword1",
+        })
+        assert old_login.status_code == 401
+
+        # Login with new password must succeed
+        new_login = await client.post("/api/auth/login", json={
+            "email": email,
+            "password": "NewSecurePass2",
+        })
+        assert new_login.status_code == 200
+        assert "access_token" in new_login.json()
+
+
+@pytest.mark.asyncio
+async def test_reset_password_invalid_token(client):
+    """Test that invalid reset token is rejected."""
+    res = await client.post("/api/auth/reset-password", json={
+        "token": "invalid.jwt.token",
+        "new_password": "NewSecurePass2",
+    })
+    assert res.status_code == 400
+

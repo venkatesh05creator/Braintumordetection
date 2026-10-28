@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_BASE_URL } from './imageUrl';
 
 const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: API_BASE_URL,
   timeout: 60000, // 60s for AI inference
   headers: {
     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refresh_token: refreshToken,
         });
         const { access_token, refresh_token } = res.data;
@@ -92,7 +92,10 @@ export const authAPI = {
   login: (data) => apiClient.post('/auth/login', data),
   refresh: (refreshToken) => apiClient.post('/auth/refresh', { refresh_token: refreshToken }),
   me: () => apiClient.get('/auth/me'),
+  forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
+  resetPassword: (token, newPassword) => apiClient.post('/auth/reset-password', { token, new_password: newPassword }),
 };
+
 
 export const scansAPI = {
   upload: (patientId, file) => {
@@ -183,8 +186,23 @@ export const chatAPI = {
   sendMessage: (messages, patientId) => apiClient.post('/chat/', { messages, patient_id: patientId }),
 };
 
+export const appointmentsAPI = {
+  list: (status) => apiClient.get('/appointments/', { params: status ? { status } : {} }),
+  create: (data) => apiClient.post('/appointments/', data),
+  updateStatus: (id, data) => apiClient.patch(`/appointments/${id}/status`, data),
+};
+
+export const adminAPI = {
+  getStats: () => apiClient.get('/admin/stats'),
+  listUsers: (role) => apiClient.get('/admin/users', { params: role ? { role } : {} }),
+  verifyDoctor: (id, isVerified) => apiClient.patch(`/admin/doctors/${id}/verify`, { is_verified: isVerified }),
+  updateUserStatus: (id, isActive) => apiClient.patch(`/admin/users/${id}/status`, { is_active: isActive }),
+  getAuditLogs: (limit = 50) => apiClient.get('/admin/audit-logs', { params: { limit } }),
+};
+
 export const systemAPI = {
   getAiStatus: () => apiClient.get('/system/ai-status'),
 };
 
 export default apiClient;
+

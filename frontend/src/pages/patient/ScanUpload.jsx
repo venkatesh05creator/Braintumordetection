@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Brain, CheckCircle, AlertTriangle, Zap, Shield, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, Brain, CheckCircle, AlertTriangle, Zap, Shield, Eye, ChevronDown, ChevronUp, Camera, UploadCloud } from 'lucide-react';
 import { scansAPI } from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import EnsembleResultPanel from '../../components/EnsembleResultPanel';
@@ -109,7 +109,9 @@ export default function ScanUpload() {
       }, 500);
     } catch (err) {
       clearInterval(progressInterval);
-      setError(err.response?.data?.detail || 'Analysis failed. Please try again.');
+      const detail = err.response?.data?.detail;
+      const rawMsg = typeof detail === 'string' ? detail : (detail ? JSON.stringify(detail) : 'Analysis failed. Please try again.');
+      setError(rawMsg.replace(/—/g, ' - '));
       setUploading(false);
       setProgress(0);
     }
@@ -231,7 +233,9 @@ export default function ScanUpload() {
                     }}
                   />
                 ) : (
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem', animation: uploading ? 'pulse 1.5s infinite' : 'none' }}>🧬</div>
+                  <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+                    <UploadCloud size={46} color="var(--accent-cyan)" />
+                  </div>
                 )}
                 <h3 style={{ color: 'var(--text-primary)', marginBottom: 8, fontSize: '1.1rem' }}>
                   {isDragActive ? 'Drop MRI scan here...' : 'Drop MRI scan or click to browse'}
@@ -249,7 +253,7 @@ export default function ScanUpload() {
                     onClick={startCamera}
                     style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                   >
-                    📸 Use Device Camera
+                    <Camera size={16} /> Use Device Camera
                   </button>
                 </div>
               )}

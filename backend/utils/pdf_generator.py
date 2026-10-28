@@ -5,6 +5,8 @@ coverage (Greek symbols, curly quotes, etc.). Emoji and control characters
 that the fonts cannot render are stripped or replaced with safe equivalents.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from datetime import datetime

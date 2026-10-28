@@ -6,6 +6,8 @@ When TensorFlow + trained model are available, uses true Grad-CAM.
 Otherwise, uses saliency approximation via OpenCV.
 """
 
+from __future__ import annotations
+
 import io
 import logging
 
@@ -116,7 +118,7 @@ def _get_heatmap(image_bytes: bytes, model=None, class_index: int = 0) -> np.nda
         if model is None:
             from ai.agent_local_cv import _tf_model
             model = _tf_model
-        if model is not None:
+        if model is not None and hasattr(model, "get_layer"):
             try:
                 return _heatmap_keras(image_bytes, model, class_index)
             except Exception as e:

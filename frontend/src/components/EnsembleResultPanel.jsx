@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   CheckCircle, AlertTriangle, AlertOctagon, Info,
-  ChevronDown, ChevronUp, RefreshCw, Bot, Loader2, Check, FileText, ShieldCheck
+  ChevronDown, ChevronUp, RefreshCw, Bot, Loader2, Check, FileText, ShieldCheck, Zap
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import { systemAPI } from '../api/client';
@@ -35,9 +35,11 @@ function AgentVoteCard({ vote }) {
   if (!vote.success) {
     return (
       <div className="agent-card failed">
-        <div className="agent-name">⚠️ {vote.agent_name}</div>
+        <div className="agent-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <AlertTriangle size={14} color="var(--accent-amber)" /> {vote.agent_name}
+        </div>
         <div style={{ color: 'var(--accent-red)', fontSize: '0.8rem' }}>
-          Agent unavailable — {vote.reasoning?.slice(0, 60)}
+          Agent unavailable: {vote.reasoning?.slice(0, 60)}
         </div>
       </div>
     );
@@ -45,7 +47,9 @@ function AgentVoteCard({ vote }) {
 
   return (
     <div className="agent-card success">
-      <div className="agent-name">🤖 {vote.agent_name}</div>
+      <div className="agent-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Bot size={14} color="var(--accent-cyan)" /> {vote.agent_name}
+      </div>
       <div className="agent-verdict" style={{ color: tumorInfo.color }}>
         {tumorInfo.label}
       </div>
@@ -163,12 +167,12 @@ function DoctorVerdictCard({ verdict, verdictAt, note, onVerdict }) {
         <div style={{ flex: 1, minWidth: 220 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <ShieldCheck size={15} style={{ color: 'var(--accent-cyan)' }} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>Doctor Verdict — Calibration Ledger</span>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>Doctor Verdict: Calibration Ledger</span>
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
             {verdict
               ? 'Your review is recorded below. Changing it updates the calibration curve.'
-              : 'Record your review of this AI diagnosis. Verdicts are aggregated into an empirical calibration curve — “when the model says X%, doctors confirmed it Y%”.'}
+              : 'Record your review of this AI diagnosis. Verdicts are aggregated into an empirical calibration curve: "when the model says X%, doctors confirmed it Y%".'}
           </div>
         </div>
         {verdict && (
@@ -276,9 +280,11 @@ export default function EnsembleResultPanel({ result, originalImage, onReset, do
         <div className="alert-banner high" style={{ marginBottom: '1.5rem' }}>
           <AlertOctagon size={20} />
           <div>
-            <strong>⚠️ AI Uncertainty — Mandatory Human Review Required</strong>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={15} color="var(--accent-amber)" /> AI Uncertainty: Mandatory Physician Review Required
+            </strong>
             <p style={{ fontSize: '0.85rem', marginTop: 4, color: 'var(--text-secondary)' }}>
-              The AI agents could not reach strong consensus. A qualified radiologist must review
+              The AI models could not reach strong consensus. A qualified radiologist must review
               this scan before any clinical decision is made.
             </p>
           </div>
@@ -304,8 +310,8 @@ export default function EnsembleResultPanel({ result, originalImage, onReset, do
                 {ensemble.risk_level?.toUpperCase()} RISK
               </span>
               {ensemble.uncertainty_flag && (
-                <span className="badge" style={{ background: 'rgba(245,158,11,0.2)', color: '#fcd34d', border: '1px solid rgba(245,158,11,0.3)' }}>
-                  ⚠️ REVIEW REQUIRED
+                <span className="badge" style={{ background: 'rgba(245,158,11,0.2)', color: '#fcd34d', border: '1px solid rgba(245,158,11,0.3)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <AlertTriangle size={12} /> REVIEW REQUIRED
                 </span>
               )}
             </div>
@@ -352,7 +358,7 @@ export default function EnsembleResultPanel({ result, originalImage, onReset, do
               <strong>Degraded AI ensemble</strong>
               <p style={{ fontSize: '0.85rem', marginTop: 4, color: 'var(--text-secondary)' }}>
                 {nameAgents(disabledAgents).join(' and ')} {disabledAgents.length > 1 ? 'are' : 'is'} not configured on
-                this deployment — this analysis ran on the configured agent{ensemble.agents_count > 1 ? 's' : ''} only.
+                this deployment - this analysis ran on the configured agent{ensemble.agents_count > 1 ? 's' : ''} only.
               </p>
             </div>
           </div>
@@ -464,12 +470,12 @@ export default function EnsembleResultPanel({ result, originalImage, onReset, do
 
         {/* Performance stats */}
         <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            ⚡ Total latency: <span style={{ color: 'var(--accent-cyan)' }}>{ensemble.total_latency_ms?.toFixed(0)}ms</span>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Zap size={13} color="var(--accent-cyan)" /> Total latency: <span style={{ color: 'var(--accent-cyan)' }}>{ensemble.total_latency_ms?.toFixed(0)}ms</span>
           </div>
           {unavailable.length > 0 && (
-            <div style={{ fontSize: '0.75rem', color: 'var(--accent-orange)' }}>
-              ⚠️ Unavailable agents: {nameAgents(unavailable).join(', ')}
+            <div style={{ fontSize: '0.75rem', color: 'var(--accent-orange)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <AlertTriangle size={13} color="var(--accent-orange)" /> Unavailable models: {nameAgents(unavailable).join(', ')}
             </div>
           )}
         </div>

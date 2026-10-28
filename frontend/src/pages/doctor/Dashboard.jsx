@@ -128,7 +128,7 @@ export default function DoctorDashboard() {
       const updated = { ...selectedScan, doctor_verdict: verdict, doctor_verdict_at: res.data.doctor_verdict_at, doctor_verdict_note: note || null };
       setSelectedScan(updated);
       setScans(scans.map(s => s.scan_id === selectedScan.scan_id ? updated : s));
-      setVerdictMsg({ type: 'success', text: `Verdict recorded — ${verdict === 'confirmed' ? 'confirmed' : 'disagreed'}. The calibration curve is updated.` });
+      setVerdictMsg({ type: 'success', text: `Verdict recorded: ${verdict === 'confirmed' ? 'confirmed' : 'disagreed'}. The calibration curve is updated.` });
       scansAPI.getCalibration().then(r => setCalibration(r.data)).catch(() => {});
     } catch (err) { setVerdictMsg(null); throw err; }
   };
@@ -169,7 +169,6 @@ export default function DoctorDashboard() {
   const prevScan = scans[1] || null;
   const latestBurden = burdenOf(latestScan);
   const prevBurden = burdenOf(prevScan);
-  const burdenDelta = latestBurden != null && prevBurden != null ? latestBurden - prevBurden : null;
 
   const calibrationFootnote = (() => {
     const conf = latestScan?.final_confidence;
@@ -177,7 +176,7 @@ export default function DoctorDashboard() {
     const bucket = (calibration.buckets || []).find(
       b => conf >= b.min && (conf < b.max || (b.max === 1 && conf === 1))
     );
-    if (!bucket || bucket.total === 0) return 'No doctor verdicts in this confidence range yet — calibration builds as scans are reviewed.';
+    if (!bucket || bucket.total === 0) return 'No doctor verdicts in this confidence range yet: calibration builds as scans are reviewed.';
     return `When the model says ${bucket.label}, doctors confirmed it ${Math.round(bucket.rate * 100)}% (n=${bucket.total})`;
   })();
 
@@ -227,7 +226,7 @@ export default function DoctorDashboard() {
                   <div className="patient-queue-name" style={{ color: isActive ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{p.full_name}</div>
                   <div className="patient-queue-meta">{p.tumor_type || 'No diagnosis yet'}</div>
                   <div className="patient-queue-stats">
-                    <span className="patient-queue-volume">{p.latest_burden_pct != null ? `${Number(p.latest_burden_pct).toFixed(1)}%` : '—'}</span>
+                    <span className="patient-queue-volume">{p.latest_burden_pct != null ? `${Number(p.latest_burden_pct).toFixed(1)}%` : '-'}</span>
                     <span className={`patient-queue-trend ${p.risk_level === 'critical' || p.risk_level === 'high' ? 'up' : 'down'}`}>{p.risk_level || 'unknown'}</span>
                   </div>
                 </div>
@@ -453,7 +452,7 @@ export default function DoctorDashboard() {
                         </RechartsLineChart>
                       </ResponsiveContainer>
                       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                        2D tumor-burden estimate computed from each scan's segmentation mask (tumor area ÷ brain area) — a trend proxy, not a volumetric measurement.
+                        2D tumor-burden estimate computed from each scan's segmentation mask (tumor area ÷ brain area): a trend proxy, not a volumetric measurement.
                       </p>
                     </>
                   )}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Brain, LayoutDashboard, Upload, FileText, Activity,
-  Users, MessageSquare, Bell, LogOut, Shield, Settings
+  Users, MessageSquare, Bell, LogOut, Shield, Settings, Calendar
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useAlertsStore from '../store/alertsStore';
@@ -20,6 +20,7 @@ const patientNav = [
   { to: '/patient/scan', icon: <Upload size={17} />, label: 'Upload MRI Scan' },
   { to: '/patient/reports', icon: <FileText size={17} />, label: 'My Reports' },
   { to: '/patient/symptoms', icon: <Activity size={17} />, label: 'Symptom Tracker' },
+  { to: '/patient/appointments', icon: <Calendar size={17} />, label: 'Appointments' },
   { to: '/patient/chatbot', icon: <Brain size={17} />, label: 'AI Assistant' },
   { to: '/patient/messages', icon: <MessageSquare size={17} />, label: 'Clinical Chat' },
 ];
@@ -27,8 +28,13 @@ const patientNav = [
 const doctorNav = [
   { to: '/doctor', icon: <LayoutDashboard size={17} />, label: 'Dashboard', end: true },
   { to: '/doctor/patients', icon: <Users size={17} />, label: 'Patients' },
+  { to: '/doctor/appointments', icon: <Calendar size={17} />, label: 'Appointments' },
   { to: '/doctor/messages', icon: <MessageSquare size={17} />, label: 'Clinical Chat' },
   { to: '/doctor/chatbot', icon: <Brain size={17} />, label: 'AI Assistant' },
+];
+
+const adminNav = [
+  { to: '/admin', icon: <Shield size={17} />, label: 'Admin Portal', end: true },
 ];
 
 export default function Sidebar() {
@@ -72,10 +78,10 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-  const navItems = user?.role === 'doctor' ? doctorNav : patientNav;
+  const navItems = user?.role === 'admin' ? adminNav : user?.role === 'doctor' ? doctorNav : patientNav;
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : user?.role === 'doctor' ? 'DR' : 'PT';
+    : user?.role === 'admin' ? 'AD' : user?.role === 'doctor' ? 'DR' : 'PT';
 
   return (
     <aside className="sidebar">
@@ -98,7 +104,7 @@ export default function Sidebar() {
             {user?.role === 'doctor' ? `Dr. ${user.full_name}` : user?.full_name}
           </div>
           <div className="sidebar-profile-sub">
-            {user?.role === 'doctor' ? '🏥 Neuro-Oncology' : '🩺 Patient Portal'}
+            {user?.role === 'admin' ? 'System Governance' : user?.role === 'doctor' ? 'Neuro-Oncology' : 'Patient Portal'}
           </div>
         </div>
       </div>
@@ -188,7 +194,7 @@ export default function Sidebar() {
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Shield size={10} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>HIPAA Compliant</span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>HIPAA-Aligned Safeguards</span>
           </div>
         </div>
 

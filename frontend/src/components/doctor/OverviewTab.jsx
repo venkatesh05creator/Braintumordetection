@@ -39,18 +39,18 @@ export default function OverviewTab({ scans, symptoms, selectedLog, onSelectLog,
     },
     {
       title: 'Tumor Probability', icon: <Brain size={14} />, value: fmtPct(latestScan?.final_confidence),
-      sub: `Agreement: ${latestScan?.agreement_level || '—'}`,
+      sub: `Agreement: ${latestScan?.agreement_level || 'Pending'}`,
       color: 'var(--accent-cyan)', bg: 'rgba(0,229,200,0.08)', border: 'rgba(0,229,200,0.20)',
       footnote: calibrationFootnote,
     },
     {
       title: 'Tumor Volume', icon: <Activity size={14} />, value: fmtVol(latestScan?.tumor_volume_cm3),
-      sub: latestScan?.volume_method ? (latestScan.volume_method === 'nifti' ? `3D volume • ${latestScan.voxel_spacing || ''}` : `Single slice • ${latestScan.voxel_spacing || ''}`) : '2D slice — no volume data',
-      color: latestScan?.tumor_volume_cm3 != null ? 'var(--accent-purple)' : 'var(--text-muted)',
-      bg: 'rgba(168,85,247,0.08)', border: 'rgba(168,85,247,0.20)',
+      sub: latestScan?.volume_method ? (latestScan.volume_method === 'nifti' ? `3D volume • ${latestScan.voxel_spacing || ''}` : `Single slice • ${latestScan.voxel_spacing || ''}`) : '2D slice: no volumetric data',
+      color: latestScan?.tumor_volume_cm3 != null ? 'var(--accent-blue)' : 'var(--text-muted)',
+      bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.20)',
     },
     {
-      title: 'KPS Score', icon: <Users size={14} />, value: '—', sub: 'Not recorded',
+      title: 'KPS Score', icon: <Users size={14} />, value: 'N/A', sub: 'Not recorded',
       color: 'var(--accent-orange)', bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.20)',
     },
   ];
@@ -107,7 +107,7 @@ export default function OverviewTab({ scans, symptoms, selectedLog, onSelectLog,
           </div>
           {chartData.length === 0 ? (
             <div style={{ border: '1px dashed var(--border-subtle)', borderRadius: 10, padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-              No symptom logs for this patient yet — logged entries appear here.
+              No symptom logs for this patient yet - logged entries appear here.
             </div>
           ) : (
             <>
@@ -164,9 +164,9 @@ export default function OverviewTab({ scans, symptoms, selectedLog, onSelectLog,
         <div className="molecular-profile-card">
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Molecular Profile</span>
           <div style={{ border: '1px dashed var(--border-subtle)', borderRadius: 10, padding: '0.9rem 0.75rem', textAlign: 'center', marginTop: '0.6rem' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Not recorded — requires pathology</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Not recorded: requires pathology</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
-              IDH, MGMT, 1p/19q, EGFR, TERT and Ki-67 come from tissue pathology — they cannot be derived from an MRI scan. A pathology report will populate this panel.
+              IDH, MGMT, 1p/19q, EGFR, TERT and Ki-67 come from tissue pathology: they cannot be derived from an MRI scan. A pathology report will populate this panel.
             </div>
           </div>
         </div>
@@ -198,13 +198,13 @@ export default function OverviewTab({ scans, symptoms, selectedLog, onSelectLog,
                       <td>MRI Contrast (T1w)</td>
                       <td>{fmtBurden(b)}</td>
                       <td style={{ color: delta == null ? 'var(--text-muted)' : delta > 0 ? 'var(--accent-red)' : delta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' }}>
-                        {delta == null ? '—' : `${fmtSigned(delta)} pp`}
+                        {delta == null ? '-' : `${fmtSigned(delta)} pp`}
                       </td>
                       <td><span className={`badge badge-${scan.agreement_level || 'confirmed'}`} style={{ textTransform: 'capitalize' }}>{scan.final_classification || 'Processing'}</span></td>
                       <td>
                         {scan.doctor_verdict ? (
                           <span className={`badge ${scan.doctor_verdict === 'confirmed' ? 'badge-confirmed' : 'badge-uncertain'}`} style={{ fontSize: '0.62rem', padding: '1px 7px' }}>
-                            {scan.doctor_verdict === 'confirmed' ? '✓ Confirmed' : '✗ Disagreed'}
+                            {scan.doctor_verdict === 'confirmed' ? 'Confirmed' : 'Disagreed'}
                           </span>
                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>Not reviewed</span>}
                       </td>

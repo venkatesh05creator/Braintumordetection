@@ -140,14 +140,17 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── CORS Middleware ───────────────────────────────────────────────────────────
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_origin_regex=r"https?://.*",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_kwargs = {
+    "allow_origins": settings.CORS_ORIGINS,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if settings.is_development:
+    # Allow localhost and 127.0.0.1 on development ports during development
+    cors_kwargs["allow_origin_regex"] = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 # ── Security Headers Middleware ───────────────────────────────────────────────
 
@@ -182,10 +185,12 @@ if os.path.isdir("uploads"):
 
 # ── API Routers ───────────────────────────────────────────────────────────────
 
-from routers import auth, patients, scans, symptoms, reports, messages, alerts, chat, system
+from routers import admin, alerts, appointments, auth, chat, messages, patients, reports, scans, symptoms, system
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Administration"])
 app.include_router(patients.router, prefix="/api/patients", tags=["Patients"])
+app.include_router(appointments.router, prefix="/api/appointments", tags=["Clinical Appointments"])
 app.include_router(scans.router, prefix="/api/scans", tags=["MRI Scans & AI Analysis"])
 app.include_router(symptoms.router, prefix="/api/symptoms", tags=["Symptom Tracking"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Clinical Reports"])

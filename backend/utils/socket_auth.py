@@ -8,6 +8,8 @@ Without this, any connected client could join another user's room and
 receive their messages and escalation alerts (IDOR).
 """
 
+from __future__ import annotations
+
 
 def validate_room_access(room: str | None, user_id: int, role: str | None) -> bool:
     """Return True if the caller may join ``room``."""

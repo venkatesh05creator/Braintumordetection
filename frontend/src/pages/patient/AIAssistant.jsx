@@ -116,7 +116,7 @@ export default function AIAssistant() {
         ...prev,
         {
           role: 'assistant',
-          content: '⚠️ Failed to connect to the Multi-Agent engine. Please try again in a few moments.'
+          content: 'Unable to connect to the Multi-Agent engine. Please verify network connectivity and try again.'
         }
       ]);
     } finally {
@@ -179,8 +179,8 @@ export default function AIAssistant() {
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
           {isDoc
-            ? 'NeuroBot AI — Secure multi-agent console for case analysis and patient-guidance support.'
-            : 'NeuroBot AI — Secure multi-agent console for brain tumor query support.'}
+            ? 'NeuroBot AI: Secure multi-agent console for case analysis and clinical guidance support.'
+            : 'NeuroBot AI: Secure multi-agent console for brain tumor inquiry support.'}
         </p>
 
         {/* Context picker / status bar */}
@@ -209,15 +209,15 @@ export default function AIAssistant() {
               </select>
               <span style={{ fontSize: '0.75rem', color: contextLoaded > 0 ? 'var(--accent-green)' : 'var(--text-muted)' }}>
                 {contextLoaded > 0
-                  ? `✓ AI is aware of your ${contextLoaded}-message thread with ${selectedPatient?.full_name}`
-                  : 'AI will learn from the selected consultation thread'}
+                  ? `Active Context: ${contextLoaded}-message consultation thread with ${selectedPatient?.full_name}`
+                  : 'AI will calibrate from the selected consultation thread'}
               </span>
             </>
           ) : (
             <span style={{ fontSize: '0.78rem', color: contextLoaded > 0 ? 'var(--accent-green)' : 'var(--text-muted)' }}>
               {contextLoaded > 0
-                ? `✓ AI is aware of your recent ${contextLoaded}-message consultation — ask what your doctor advised`
-                : 'AI learns from your doctor\u2019s replies in Clinical Chat to answer follow-ups'}
+                ? `Active Context: ${contextLoaded}-message clinical consultation loaded`
+                : 'AI references doctor guidance in Clinical Chat to answer follow-up queries'}
             </span>
           )}
           {contextError && (

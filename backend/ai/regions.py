@@ -88,4 +88,4 @@ def mask_bounding_box_size(mask: np.ndarray) -> str | None:
     ys, xs = np.where(mask > 0)
     if len(xs) == 0:
         return None
-    return f"≈{int(xs.max() - xs.min()) + 1}×{int(ys.max() - ys.min()) + 1} px (2D mask)"
+    return f"~{int(xs.max() - xs.min()) + 1}x{int(ys.max() - ys.min()) + 1} px (2D mask)"

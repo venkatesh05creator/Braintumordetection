@@ -7,6 +7,8 @@ Simulates collaboration between:
   3. Symptom Advisor: Suggests tracking methods and prepares questions for specialists.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import List, Dict, Optional
 from config import settings

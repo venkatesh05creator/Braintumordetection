@@ -91,7 +91,7 @@ export default function MyReports() {
               border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, textAlign: 'center', padding: '3rem',
               boxShadow: '5px 5px 16px rgba(0,0,0,0.5), -2px -2px 8px rgba(255,255,255,0.04)',
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</div>
+              <FileText size={48} color="var(--text-muted)" style={{ margin: '0 auto 1rem', display: 'block' }} />
               <h3>No Diagnostic Reports Yet</h3>
               <p style={{ color: 'var(--text-secondary)', marginTop: 8, fontSize: '0.9rem' }}>Upload an MRI scan to generate your first consensus diagnostic report.</p>
             </div>
@@ -129,8 +129,8 @@ export default function MyReports() {
                           background: 'rgba(255,255,255,0.02)',
                           border: '1px solid var(--border-subtle)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '1.1rem'
-                        }}>📄</div>
+                          color: 'var(--accent-cyan)'
+                        }}><FileText size={18} /></div>
                         <button
                           className="btn btn-secondary btn-sm"
                           style={{ padding: '6px 8px', flexShrink: 0 }}
@@ -212,7 +212,7 @@ export default function MyReports() {
               </div>
               <div className="glass-card" style={{ padding: '1rem', background: '#090c13', border: '1px solid var(--border-subtle)' }}>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Tumor Stage / WHO Grade</span>
-                <h4 style={{ color: selected.tumor_stage && selected.tumor_stage !== 'Not staged yet' ? 'var(--accent-purple)' : 'var(--text-secondary)', fontSize: '1.1rem', marginTop: 4, fontWeight: 800 }}>
+                <h4 style={{ color: selected.tumor_stage && selected.tumor_stage !== 'Not staged yet' ? 'var(--accent-blue)' : 'var(--text-secondary)', fontSize: '1.1rem', marginTop: 4, fontWeight: 800 }}>
                   {selected.tumor_stage || 'Not graded yet'}
                 </h4>
               </div>
@@ -268,7 +268,7 @@ export default function MyReports() {
             {/* Report Insights Monospace Panel */}
             <div style={{ marginBottom: '1rem' }}>
               <h4 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                <Brain size={14} style={{ color: 'var(--accent-purple)' }} /> AI Expert Explanations & Suggestions
+                <Brain size={14} style={{ color: 'var(--accent-cyan)' }} /> AI Expert Explanations & Suggestions
               </h4>
               <div style={{
                 background: '#090c13',

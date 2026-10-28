@@ -7,6 +7,8 @@ from .report import Report
 from .message import Message
 from .alert import Alert
 from .connection_request import ConnectionRequest
+from .audit_log import AuditLog
+from .appointment import Appointment
 
 __all__ = [
     "User", "UserRole",
@@ -17,4 +19,6 @@ __all__ = [
     "Message",
     "Alert",
     "ConnectionRequest",
+    "AuditLog",
+    "Appointment",
 ]

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, ArrowRight, UserCog, User, Mail, Lock, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Brain, ArrowRight, UserCog, User, Mail, Lock, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function Register() {
   const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'patient' });
+  const [showPass, setShowPass] = useState(false);
   const [success, setSuccess] = useState(false);
   const { register, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function Register() {
           </div>
           <h1 style={{ fontSize: '1.8rem', marginBottom: 6 }}>Create Account</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Join <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>NeuroScan AI</span> Platform
+            Join <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>NeuroScan AI</span> Platform
           </p>
         </div>
 
@@ -74,7 +75,7 @@ export default function Register() {
         <div className="glass-panel" style={{ padding: '2rem', position: 'relative' }}>
           <div style={{
             position: 'absolute', top: 0, left: '10%', right: '10%', height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.4), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(0,229,200,0.4), transparent)',
           }} />
 
           {error && (
@@ -94,18 +95,18 @@ export default function Register() {
                     style={{
                       padding: '1rem 0.75rem',
                       borderRadius: 'var(--radius-md)',
-                      border: `1px solid ${form.role === opt.value ? 'rgba(168,85,247,0.30)' : 'rgba(255,255,255,0.07)'}`,
+                      border: `1px solid ${form.role === opt.value ? 'rgba(0,229,200,0.35)' : 'rgba(255,255,255,0.07)'}`,
                       background: form.role === opt.value
-                        ? 'rgba(168,85,247,0.12)'
+                        ? 'rgba(0,229,200,0.10)'
                         : 'rgba(255,255,255,0.03)',
-                      color: form.role === opt.value ? 'var(--accent-purple)' : 'var(--text-secondary)',
+                      color: form.role === opt.value ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                       cursor: 'pointer',
                       display: 'flex', flexDirection: 'column',
                       alignItems: 'center', justifyContent: 'center', gap: 6,
                       fontWeight: 600, fontSize: '0.875rem',
                       transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
                       boxShadow: form.role === opt.value
-                        ? 'inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 6px rgba(255,255,255,0.03), 0 0 20px rgba(168,85,247,0.12)'
+                        ? 'inset 3px 3px 8px rgba(0,0,0,0.5), inset -2px -2px 6px rgba(255,255,255,0.03), 0 0 20px rgba(0,229,200,0.12)'
                         : '4px 4px 12px rgba(0,0,0,0.4), -2px -2px 8px rgba(255,255,255,0.04)',
                     }}
                   >
@@ -146,17 +147,37 @@ export default function Register() {
               <label className="form-label">Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input type="password" name="password" className="form-input"
-                  placeholder="Min. 8 chars, 1 uppercase, 1 number" value={form.password}
-                  onChange={handleChange} required minLength={8}
-                  style={{ paddingLeft: '2.5rem' }} />
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  name="password"
+                  className="form-input"
+                  placeholder="Min. 8 chars, 1 uppercase, 1 number"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.75rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+                    display: 'flex', alignItems: 'center',
+                    transition: 'color 0.2s',
+                  }}
+                  aria-label={showPass ? "Hide password" : "Show password"}
+                >
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>
                 Must contain at least one uppercase letter and one digit.
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full" disabled={isLoading} style={{ marginTop: '0.5rem', padding: '0.8rem', background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))' }}>
+            <button type="submit" className="btn btn-primary w-full" disabled={isLoading} style={{ marginTop: '0.5rem', padding: '0.8rem' }}>
               {isLoading ? (
                 <><div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Creating account...</>
               ) : (
@@ -170,6 +191,12 @@ export default function Register() {
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
               Already have an account?{' '}
               <Link to="/login" style={{ color: 'var(--accent-cyan)', fontWeight: 600, textDecoration: 'none' }}>Sign in</Link>
+            </p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+              By creating an account, you agree to our{' '}
+              <Link to="/terms" style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Terms of Service</Link>{' '}
+              and{' '}
+              <Link to="/privacy" style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Privacy Policy</Link>.
             </p>
           </div>
         </div>

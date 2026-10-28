@@ -7,6 +7,8 @@ multimodal MRI image analysis and brain tumor classification.
 Free API key: https://aistudio.google.com/app/apikey
 """
 
+from __future__ import annotations
+
 import base64
 import io
 import json
@@ -16,6 +18,7 @@ from typing import Any
 import google.generativeai as genai
 from PIL import Image
 
+from ai.orchestrator import AgentResult
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -66,7 +69,7 @@ class GeminiVisionAgent:
         self,
         image_bytes: bytes,
         patient_context: dict[str, Any] | None = None,
-    ) -> "AgentResult":  # noqa: F821 — imported at runtime to avoid circular
+    ) -> AgentResult:
         """
         Analyze MRI image bytes with Gemini Vision.
 
@@ -95,17 +98,23 @@ class GeminiVisionAgent:
                 [prompt, pil_image],
                 generation_config=genai.GenerationConfig(
                     temperature=0.1,  # Low temperature for deterministic medical output
-                    max_output_tokens=512,
+                    max_output_tokens=1024,
+                    response_mime_type="application/json",
                 ),
             )
 
             # Parse JSON response
             raw_text = response.text.strip()
-            # Strip any accidental markdown code fences
-            if raw_text.startswith("```"):
-                raw_text = raw_text.split("```")[1]
-                if raw_text.startswith("json"):
-                    raw_text = raw_text[4:]
+            if "```" in raw_text:
+                parts = raw_text.split("```")
+                raw_text = parts[1] if len(parts) >= 2 else raw_text
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:].strip()
+            raw_text = raw_text.strip()
+            start_idx = raw_text.find("{")
+            end_idx = raw_text.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                raw_text = raw_text[start_idx : end_idx + 1]
 
             data = json.loads(raw_text)
 

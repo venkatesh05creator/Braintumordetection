@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    REQUIRE_DOCTOR_VERIFICATION: bool = True
 
     # ── Database ─────────────────────────────────────────────────────────────
     # Supabase: postgresql+asyncpg://user:pass@host:5432/postgres
@@ -70,11 +71,11 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.split(",")]
         return v
 
-    # ── AI — Google Gemini (free tier) ───────────────────────────────────────
+    # ── AI - Google Gemini (free tier) ───────────────────────────────────────
     # Get free key at: https://aistudio.google.com/app/apikey
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL_FAST: str = "gemini-1.5-flash"   # 15 req/min free
-    GEMINI_MODEL_PRO: str = "gemini-1.5-pro"       # 2 req/min free
+    GEMINI_MODEL_FAST: str = "gemini-2.5-flash"   # 15 req/min free
+    GEMINI_MODEL_PRO: str = "gemini-2.5-flash"    # fast multimodal reasoning
 
     # ── AI — HuggingFace Inference API (free tier) ────────────────────────────
     # Get free key at: https://huggingface.co/settings/tokens
@@ -95,7 +96,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_AUTH: str = "5/minute"
     RATE_LIMIT_AI: str = "3/minute"
     RATE_LIMIT_GENERAL: str = "60/minute"
-    RATE_LIMIT_ENABLED: bool = False  # Disabled globally across application
+    RATE_LIMIT_ENABLED: bool = True
 
     # ── Symptom Monitoring ────────────────────────────────────────────────────
     SYMPTOM_ALERT_THRESHOLD_PCT: float = 20.0   # % spike to trigger alert

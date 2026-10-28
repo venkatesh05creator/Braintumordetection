@@ -1,0 +1,91 @@
+{
+  "dataset_size": 1600,
+  "overall_accuracy": 0.8825,
+  "macro_f1": 0.8822,
+  "weighted_f1": 0.8822,
+  "per_class": {
+    "glioma": {
+      "true_positives": 348,
+      "false_positives": 48,
+      "true_negatives": 1152,
+      "false_negatives": 52,
+      "support": 400,
+      "precision": 0.8788,
+      "recall_sensitivity": 0.87,
+      "specificity": 0.96,
+      "f1_score": 0.8744
+    },
+    "meningioma": {
+      "true_positives": 342,
+      "false_positives": 54,
+      "true_negatives": 1146,
+      "false_negatives": 58,
+      "support": 400,
+      "precision": 0.8636,
+      "recall_sensitivity": 0.855,
+      "specificity": 0.955,
+      "f1_score": 0.8593
+    },
+    "notumor": {
+      "true_positives": 376,
+      "false_positives": 50,
+      "true_negatives": 1150,
+      "false_negatives": 24,
+      "support": 400,
+      "precision": 0.8826,
+      "recall_sensitivity": 0.94,
+      "specificity": 0.9583,
+      "f1_score": 0.9104
+    },
+    "pituitary": {
+      "true_positives": 346,
+      "false_positives": 36,
+      "true_negatives": 1164,
+      "false_negatives": 54,
+      "support": 400,
+      "precision": 0.9058,
+      "recall_sensitivity": 0.865,
+      "specificity": 0.97,
+      "f1_score": 0.8849
+    }
+  },
+  "confusion_matrix": [
+    [
+      348,
+      26,
+      12,
+      14
+    ],
+    [
+      24,
+      342,
+      18,
+      16
+    ],
+    [
+      8,
+      10,
+      376,
+      6
+    ],
+    [
+      16,
+      18,
+      20,
+      346
+    ]
+  ],
+  "classes": [
+    "glioma",
+    "meningioma",
+    "notumor",
+    "pituitary"
+  ],
+  "disclaimer": "Research and educational baseline evaluation only. These metrics represent algorithmic classification on a benchmark test dataset and do not constitute certified clinical diagnostic validation.",
+  "latency_benchmark": {
+    "mean_latency_ms": 46.87,
+    "p95_latency_ms": 125.6,
+    "min_latency_ms": 15.0,
+    "max_latency_ms": 344.0
+  }
+}

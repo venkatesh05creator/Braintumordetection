@@ -3,12 +3,15 @@ FastAPI dependency that extracts and validates JWT bearer tokens from requests.
 Provides RBAC decorators for doctor and patient route protection.
 """
 
+from __future__ import annotations
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from config import settings
 from database import get_db
 from models import User, UserRole
 from utils.security import decode_token
@@ -56,11 +59,16 @@ async def get_current_user(
 async def require_doctor(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """RBAC dependency: Restricts route to DOCTOR and ADMIN roles only."""
+    """RBAC dependency: Restricts route to verified DOCTOR and ADMIN roles only."""
     if current_user.role not in (UserRole.DOCTOR, UserRole.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Doctor privileges required",
+        )
+    if settings.REQUIRE_DOCTOR_VERIFICATION and current_user.role == UserRole.DOCTOR and not current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Doctor account is pending administrator verification.",
         )
     return current_user
 

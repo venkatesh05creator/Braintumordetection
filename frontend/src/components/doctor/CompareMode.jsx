@@ -22,11 +22,11 @@ function computeDeltas(prev, cur) {
 function DeltaCards({ prev, cur }) {
   const { bDelta, cDelta, days, findingChanged, vDelta } = computeDeltas(prev, cur);
   const cards = [
-    { title: 'Tumor Burden Δ', value: bDelta != null ? `${fmtSigned(bDelta)} pp` : '—', color: bDelta > 0 ? 'var(--accent-red)' : bDelta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' },
-    { title: 'Tumor Volume Δ', value: vDelta != null ? `${fmtSigned(vDelta)} cm³` : '—', color: vDelta > 0 ? 'var(--accent-red)' : vDelta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' },
-    { title: 'Tumor Probability Δ', value: cDelta != null ? `${fmtSigned(cDelta * 100)} pp` : '—', color: cDelta > 0 ? 'var(--accent-green)' : cDelta < 0 ? 'var(--accent-red)' : 'var(--text-muted)' },
-    { title: 'Time Between', value: days != null ? `${days} day${days === 1 ? '' : 's'}` : '—', color: 'var(--accent-cyan)' },
-    { title: 'Finding', value: findingChanged ? 'Changed' : (cur?.final_classification || '—'), color: findingChanged ? 'var(--accent-orange)' : 'var(--text-primary)' },
+    { title: 'Tumor Burden Δ', value: bDelta != null ? `${fmtSigned(bDelta)} pp` : '-', color: bDelta > 0 ? 'var(--accent-red)' : bDelta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' },
+    { title: 'Tumor Volume Δ', value: vDelta != null ? `${fmtSigned(vDelta)} cm³` : '-', color: vDelta > 0 ? 'var(--accent-red)' : vDelta < 0 ? 'var(--accent-green)' : 'var(--text-muted)' },
+    { title: 'Tumor Probability Δ', value: cDelta != null ? `${fmtSigned(cDelta * 100)} pp` : '-', color: cDelta > 0 ? 'var(--accent-green)' : cDelta < 0 ? 'var(--accent-red)' : 'var(--text-muted)' },
+    { title: 'Time Between', value: days != null ? `${days} day${days === 1 ? '' : 's'}` : '-', color: 'var(--accent-cyan)' },
+    { title: 'Finding', value: findingChanged ? 'Changed' : (cur?.final_classification || '-'), color: findingChanged ? 'var(--accent-orange)' : 'var(--text-primary)' },
   ];
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginTop: '1.25rem' }}>
@@ -77,7 +77,7 @@ function GrowthMapPanel({ growthMap, growthLoading, growthError, onToggle }) {
               { title: 'Expansion', value: `${(growthMap.expanded_px ?? 0).toLocaleString()} px`, color: '#f87171' },
               { title: 'Contraction', value: `${(growthMap.contracted_px ?? 0).toLocaleString()} px`, color: '#34d399' },
               { title: 'Stable', value: `${(growthMap.stable_px ?? 0).toLocaleString()} px`, color: '#fbbf24' },
-              { title: 'Tumor-to-Brain Δ', value: growthMap.delta_pp != null ? `${fmtSigned(growthMap.delta_pp)} pp` : '—', color: growthMap.delta_pp > 0 ? '#f87171' : growthMap.delta_pp < 0 ? '#34d399' : 'var(--text-muted)' },
+              { title: 'Tumor-to-Brain Δ', value: growthMap.delta_pp != null ? `${fmtSigned(growthMap.delta_pp)} pp` : '-', color: growthMap.delta_pp > 0 ? '#f87171' : growthMap.delta_pp < 0 ? '#34d399' : 'var(--text-muted)' },
             ].map(card => (
               <div key={card.title} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '0.75rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>{card.title}</div>
@@ -86,7 +86,7 @@ function GrowthMapPanel({ growthMap, growthLoading, growthError, onToggle }) {
             ))}
           </div>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            Expansion = pixels with tumor in the current scan only; contraction = pixels with tumor in the previous scan only. Masks are single representative slices and are not registered — a change in slice position between studies can look like growth or shrinkage.
+            Expansion = pixels with tumor in the current scan only; contraction = pixels with tumor in the previous scan only. Masks are single representative slices and are not registered: a change in slice position between studies can look like growth or shrinkage.
           </p>
         </>
       )}
@@ -100,7 +100,7 @@ function ScanCard({ scan, label, color }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <span style={{ fontSize: '0.68rem', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-          {scan ? new Date(scan.created_at).toLocaleDateString() : '—'}
+          {scan ? new Date(scan.created_at).toLocaleDateString() : '-'}
         </span>
       </div>
       {scan?.original_image_url ? (
@@ -111,7 +111,7 @@ function ScanCard({ scan, label, color }) {
       <div style={{ marginTop: '0.6rem', fontSize: '0.78rem', color: 'var(--text-primary)', textAlign: 'center' }}>
         <strong>{scan?.final_classification || 'Processing'}</strong> · Ratio {fmtBurden(burdenOf(scan))}
         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-          Tumor probability {fmtPct(scan?.final_confidence)} · {scan?.agreement_level || '—'}
+          Tumor probability {fmtPct(scan?.final_confidence)} · {scan?.agreement_level || '-'}
           {scan?.tumor_volume_cm3 != null && <div style={{ marginTop: 2 }}>Volume: {fmtVol(scan.tumor_volume_cm3)}</div>}
           {scan?.tumor_location && <div style={{ marginTop: 2 }}>Location: {scan.tumor_location}</div>}
         </div>
@@ -148,7 +148,7 @@ export default function CompareMode({
           >
             {scans.map(s => (
               <option key={s.scan_id} value={s.scan_id}>
-                {new Date(s.created_at).toLocaleDateString()} — {s.final_classification || 'Processing'} ({fmtBurden(burdenOf(s))})
+                {new Date(s.created_at).toLocaleDateString()} - {s.final_classification || 'Processing'} ({fmtBurden(burdenOf(s))})
               </option>
             ))}
           </select>
@@ -163,7 +163,7 @@ export default function CompareMode({
           >
             {scans.map(s => (
               <option key={s.scan_id} value={s.scan_id}>
-                {new Date(s.created_at).toLocaleDateString()} — {s.final_classification || 'Processing'} ({fmtBurden(burdenOf(s))})
+                {new Date(s.created_at).toLocaleDateString()} - {s.final_classification || 'Processing'} ({fmtBurden(burdenOf(s))})
               </option>
             ))}
           </select>

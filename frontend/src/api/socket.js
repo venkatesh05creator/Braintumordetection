@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { API_BASE_URL } from './imageUrl';
+import { BACKEND_ORIGIN } from './imageUrl';
 
 let socket = null;
 
@@ -8,7 +8,9 @@ export const initSocket = (token) => {
     socket.disconnect();
   }
 
-  socket = io(API_BASE_URL, {
+  // When BACKEND_ORIGIN is empty (same-domain deployment), io() connects
+  // to the current origin host rather than localhost:8000.
+  socket = io(BACKEND_ORIGIN || undefined, {
     auth: { token },
     autoConnect: false,
     transports: ['websocket'],

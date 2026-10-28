@@ -8,6 +8,8 @@ All public ``send_*`` helpers return the coroutine so callers can await them
 delivery inside request handlers.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import smtplib

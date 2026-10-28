@@ -49,18 +49,42 @@ def _segment_masks(image_bytes: bytes):
     # 1. Median filter
     gray_filtered = cv2.medianBlur(gray, 5)
 
-    # 2. Skull stripping
-    _, thresh_head = cv2.threshold(gray_filtered, 10, 255, cv2.THRESH_BINARY)
+    # 2. Adaptive Skull stripping
+    # Background baseline from image corners to handle elevated pedestals and scanner bias
+    corners = np.concatenate([
+        gray_filtered[:12, :12].ravel(),
+        gray_filtered[:12, -12:].ravel(),
+        gray_filtered[-12:, :12].ravel(),
+        gray_filtered[-12:, -12:].ravel(),
+    ])
+    bg_baseline = float(np.median(corners))
+    if bg_baseline < 60:
+        head_thresh = max(15.0, min(55.0, bg_baseline + 12.0))
+    else:
+        head_thresh = 10.0
+
+    _, thresh_head = cv2.threshold(gray_filtered, int(head_thresh), 255, cv2.THRESH_BINARY)
+    thresh_head = cv2.morphologyEx(thresh_head, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
     contours, _ = cv2.findContours(thresh_head, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    hx, hy, hw, hh = (0, 0, 224, 224)
     skull_mask = np.zeros_like(gray)
     if contours:
         largest_cnt = max(contours, key=cv2.contourArea)
-        cv2.drawContours(skull_mask, [largest_cnt], -1, 255, -1)
-        # Erode by 10 pixels to remove skull bone
-        skull_mask = cv2.erode(skull_mask, np.ones((10, 10), np.uint8), iterations=1)
+        hx, hy, hw, hh = cv2.boundingRect(largest_cnt)
+        head_mask = np.zeros_like(gray)
+        cv2.drawContours(head_mask, [largest_cnt], -1, 255, -1)
+        # Pad by 16px before erosion so skull bone touching image edges is cleanly stripped
+        pad = 16
+        padded_head = cv2.copyMakeBorder(head_mask, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=0)
+        kernel_erode = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (22, 22))
+        eroded_padded = cv2.erode(padded_head, kernel_erode, iterations=1)
+        skull_mask = eroded_padded[pad:-pad, pad:-pad]
     else:
         skull_mask = np.ones_like(gray) * 255
+
+    # Skull border zone (to reject residual bright skull bone artifacts)
+    skull_border = cv2.subtract(skull_mask, cv2.erode(skull_mask, np.ones((5, 5), np.uint8)))
 
     # 3. K-Means clustering inside skull mask
     brain_only = cv2.bitwise_and(gray_filtered, gray_filtered, mask=skull_mask)
@@ -95,14 +119,47 @@ def _segment_masks(image_bytes: bytes):
             thresh_val = max_val * 0.70
             _, tumor_mask = cv2.threshold(brain_only, thresh_val, 255, cv2.THRESH_BINARY)
 
-    # 5. Clean up noise
+    # 5. Morphological cleanup and necrotic cavity closing
     tumor_mask = cv2.morphologyEx(tumor_mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    # Close ring-enhancing lesion cavities (e.g. glioblastoma or cystic metastases)
+    closed_mask = cv2.morphologyEx(tumor_mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
 
-    contours, _ = cv2.findContours(tumor_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if contours:
-        largest = max(contours, key=cv2.contourArea)
-        if cv2.contourArea(largest) > 50:
-            cv2.drawContours(final_mask, [largest], -1, 255, -1)
+    contours, _ = cv2.findContours(closed_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    scored_candidates = []
+    for c in contours:
+        area = cv2.contourArea(c)
+        if area < 30:
+            continue
+        mask_c = np.zeros_like(gray)
+        cv2.drawContours(mask_c, [c], -1, 255, -1)
+        border_overlap = cv2.countNonZero(cv2.bitwise_and(mask_c, skull_border))
+        overlap_ratio = border_overlap / max(1, cv2.countNonZero(mask_c))
+        # Reject candidates that heavily overlap with the outer skull border
+        if overlap_ratio >= 0.4:
+            continue
+
+        bx, by, bw, bh = cv2.boundingRect(c)
+        peri = cv2.arcLength(c, True)
+        circ = 4 * np.pi * area / (peri * peri) if peri > 0 else 0
+        hull = cv2.convexHull(c)
+        hull_area = cv2.contourArea(hull)
+        solidity = area / hull_area if hull_area > 0 else 0
+        rel_y = (by + bh / 2.0 - hy) / float(hh) if hh > 0 else 0.5
+
+        # Penalize extracranial tissue in the bottom 25% of the head profile (neck, spine, jaw)
+        extracranial_penalty = 1.0
+        if rel_y > 0.85:
+            extracranial_penalty = 0.2
+        elif rel_y > 0.75:
+            extracranial_penalty = 0.6
+
+        # Score prioritizing compact parenchymal lesions over sprawling irregular facial fat
+        score = (area ** 0.5) * (solidity ** 1.2) * (circ ** 0.3) * extracranial_penalty
+        scored_candidates.append((score, c))
+
+    if scored_candidates:
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+        cv2.drawContours(final_mask, [scored_candidates[0][1]], -1, 255, -1)
 
     return img, skull_mask, final_mask
 

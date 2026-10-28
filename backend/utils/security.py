@@ -8,6 +8,8 @@ Security properties:
   - Token claims include: sub (user_id), role, type (access|refresh)
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
@@ -71,9 +73,22 @@ def create_refresh_token(user_id: int, role: str) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def create_reset_token(user_id: int, role: str) -> str:
+    """Create a short-lived password reset token (15 minutes)."""
+    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    payload = {
+        "sub": str(user_id),
+        "role": role,
+        "type": "reset",
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
 # ── JWT token verification ────────────────────────────────────────────────────
 
-def decode_token(token: str, expected_type: Literal["access", "refresh"] = "access") -> dict:
+def decode_token(token: str, expected_type: Literal["access", "refresh", "reset"] = "access") -> dict:
     """
     Decode and validate a JWT token.
 
@@ -90,3 +105,4 @@ def decode_token(token: str, expected_type: Literal["access", "refresh"] = "acce
         raise JWTError(f"Expected {expected_type} token, got {token_type}")
 
     return payload
+

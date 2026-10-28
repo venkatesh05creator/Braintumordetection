@@ -1,15 +1,40 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, Sparkles } from 'lucide-react';
+import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import ThemeToggle from '../components/ThemeToggle';
+import { authAPI } from '../api/client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState(null);
   const { login, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage(null);
+    try {
+      const res = await authAPI.forgotPassword(forgotEmail);
+      setForgotMessage({
+        type: 'success',
+        text: res.data?.message || 'If an account exists, a secure password reset link has been dispatched.',
+      });
+    } catch (err) {
+      setForgotMessage({
+        type: 'error',
+        text: err.response?.data?.detail || 'Unable to request password reset.',
+      });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,12 +55,6 @@ export default function Login() {
     }}>
       {/* Theme toggle */}
       <ThemeToggle floating />
-
-      {/* Floating orbs */}
-      <div className="orb-container">
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-      </div>
 
       <div style={{ width: '100%', maxWidth: 440 }} className="animate-fade-in">
         {/* Logo area */}
@@ -88,7 +107,23 @@ export default function Login() {
 
             {/* Password field */}
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <label className="form-label" style={{ margin: 0 }}>Password</label>
+                <button
+                  type="button"
+                  onClick={() => { setShowForgot(true); setForgotMessage(''); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#38bdf8',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{
                   position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
@@ -153,10 +188,140 @@ export default function Login() {
             borderRadius: '9999px',
             padding: '0.3rem 1rem',
           }}>
-            <Lock size={11} /> End-to-end encrypted · HIPAA-aware · Secure JWT Auth
+            <Lock size={11} /> End-to-end encrypted · Encrypted PHI · Secure JWT Auth
           </span>
+          <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+            <Link to="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy Policy</Link>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.4 }}>•</span>
+            <Link to="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms &amp; Conditions</Link>
+          </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgot && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '1rem',
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '400px',
+            background: '#0b1329',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '12px',
+            padding: '1.75rem',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+            position: 'relative',
+          }}>
+            <button
+              onClick={() => setShowForgot(false)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#f8fafc' }}>
+              Reset Password
+            </h2>
+            <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: '0 0 1.25rem 0' }}>
+              Enter your clinical account email address. We will verify and issue a cryptographic reset link.
+            </p>
+
+            {forgotMessage && (
+              <div style={{
+                padding: '0.75rem 1rem',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                marginBottom: '1rem',
+                background: forgotMessage.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(13, 148, 136, 0.2)',
+                border: `1px solid ${forgotMessage.type === 'error' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(13, 148, 136, 0.4)'}`,
+                color: forgotMessage.type === 'error' ? '#fca5a5' : '#5eead4',
+              }}>
+                {forgotMessage.text}
+              </div>
+            )}
+
+            <form onSubmit={handleForgotSubmit}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '0.35rem' }}>
+                  Registered Email Address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                  <input
+                    type="email"
+                    required
+                    placeholder="doctor@hospital.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.75rem 0.65rem 2.25rem',
+                      background: 'rgba(2, 6, 23, 0.6)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '6px',
+                      color: '#f8fafc',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(false)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'none',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '6px',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: '#0d9488',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    cursor: forgotLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.82rem',
+                  }}
+                >
+                  {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

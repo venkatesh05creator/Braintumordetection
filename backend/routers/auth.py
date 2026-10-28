@@ -20,9 +20,11 @@ from models import User
 from models.user import UserRole
 from models.patient import Patient
 from schemas.auth import (
+    ForgotPasswordRequest,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
 )
@@ -31,6 +33,7 @@ from utils.rate_limit import limiter
 from utils.security import (
     create_access_token,
     create_refresh_token,
+    create_reset_token,
     decode_token,
     hash_password,
     verify_password,
@@ -164,3 +167,65 @@ async def refresh_token(request: Request, body: RefreshRequest, db: AsyncSession
 async def get_me(current_user: User = Depends(get_current_user)):
     """Return the profile of the currently authenticated user."""
     return current_user
+
+
+@router.post(
+    "/forgot-password",
+    summary="Request a password reset link",
+)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Request a password reset link.
+    Returns a generic message to prevent account enumeration.
+    """
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+
+    reset_token = None
+    if user and user.is_active:
+        reset_token = create_reset_token(user.id, user.role.value)
+        # In a real SMTP deployment, an email is dispatched here:
+        # await send_password_reset_email(user.email, reset_token)
+
+    return {
+        "message": "If this email address is registered, password reset instructions have been generated.",
+        "reset_token": reset_token if (settings.is_development or settings.DEBUG) else None,
+    }
+
+
+@router.post(
+    "/reset-password",
+    summary="Reset password using a reset token",
+)
+async def reset_password(
+    body: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Reset account password using a valid short-lived reset token.
+    """
+    try:
+        payload = decode_token(body.token, expected_type="reset")
+        user_id = int(payload["sub"])
+    except (JWTError, KeyError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token.",
+        )
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User account not found or deactivated.",
+        )
+
+    user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+
+    return {"message": "Password successfully reset. You may now log in with your new password."}
+

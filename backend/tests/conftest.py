@@ -7,6 +7,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
 # shared Limiter is created with enabled=False). The suite registers/logs in far
 # more than the configured 5/minute from the same test client IP.
 os.environ["RATE_LIMIT_ENABLED"] = "false"
+os.environ["REQUIRE_DOCTOR_VERIFICATION"] = "false"
+os.environ["GEMINI_API_KEY"] = ""
+os.environ["HF_API_KEY"] = ""
 
 import asyncio
 import pytest

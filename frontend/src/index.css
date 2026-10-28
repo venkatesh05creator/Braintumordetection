@@ -55,13 +55,15 @@
 
   /* === GRADIENTS: Clinical Medical Precision === */
   --gradient-cyan: linear-gradient(135deg, #00e5c8, #0284c7);
-  --gradient-purple: linear-gradient(135deg, #2563eb, #1d4ed8);
+  --gradient-cobalt: linear-gradient(135deg, #2563eb, #1d4ed8);
+  --gradient-purple: var(--gradient-cobalt);
   --gradient-hero: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #0d9488 100%);
   --gradient-gold: linear-gradient(135deg, #fbbf24, #ff8c42);
   --gradient-brand: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   --gradient-orb-cyan: radial-gradient(circle, rgba(0, 229, 200, 0.16) 0%, transparent 65%);
-  --gradient-orb-purple: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 65%);
+  --gradient-orb-cobalt: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 65%);
+  --gradient-orb-purple: var(--gradient-orb-cobalt);
   --gradient-orb-blue: radial-gradient(circle, rgba(14, 165, 233, 0.14) 0%, transparent 65%);
   --gradient-orb-rose: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 65%);
 
@@ -110,14 +112,14 @@
   --bg-secondary: var(--bg-mid);
   --bg-card: var(--bg-surface);
   --bg-glass: var(--glass-bg);
-  --accent-purple: #a855f7;
-  --gradient-hero: linear-gradient(135deg, #00e5c8 0%, #7c5cff 45%, #ff5d8f 100%);
+  --accent-purple: #3b82f6;
+  --gradient-hero: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #0d9488 100%);
 
   /* Theme-aware surface overlays (dark-mode defaults) */
-  --sidebar-bg: rgba(21, 15, 54, 0.88);
-  --drawer-bg: rgba(23, 17, 56, 0.94);
-  --header-bg: rgba(21, 15, 54, 0.78);
-  --footer-bg: rgba(21, 15, 54, 0.65);
+  --sidebar-bg: rgba(11, 19, 41, 0.90);
+  --drawer-bg: rgba(15, 23, 42, 0.95);
+  --header-bg: rgba(11, 19, 41, 0.85);
+  --footer-bg: rgba(11, 19, 41, 0.75);
   --overlay-strong: rgba(0, 0, 0, 0.30);
   --overlay-soft: rgba(0, 0, 0, 0.22);
   --overlay-faint: rgba(0, 0, 0, 0.10);
@@ -1509,7 +1511,7 @@ h4 {
 }
 
 .glow-purple {
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 30px rgba(37, 99, 235, 0.22);
 }
 
 .glow-blue {
@@ -1522,8 +1524,8 @@ h4 {
 }
 
 .border-glow-purple {
-  border-color: rgba(168, 85, 247, 0.25) !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.10);
+  border-color: rgba(37, 99, 235, 0.25) !important;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.10);
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
@@ -2350,12 +2352,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
   --accent-gold-border: rgba(217, 119, 6, 0.25);
 
   --gradient-cyan: linear-gradient(135deg, #0d9488, #0284c7);
-  --gradient-purple: linear-gradient(135deg, #1d4ed8, #2563eb);
+  --gradient-cobalt: linear-gradient(135deg, #1d4ed8, #2563eb);
+  --gradient-purple: var(--gradient-cobalt);
   --gradient-hero: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #0d9488 100%);
   --gradient-gold: linear-gradient(135deg, #f59e0b, #ea580c);
   --gradient-brand: linear-gradient(135deg, #1d4ed8 0%, #0d9488 100%);
   --gradient-orb-cyan: radial-gradient(circle, rgba(13, 148, 136, 0.12) 0%, transparent 65%);
-  --gradient-orb-purple: radial-gradient(circle, rgba(29, 78, 216, 0.10) 0%, transparent 65%);
+  --gradient-orb-cobalt: radial-gradient(circle, rgba(29, 78, 216, 0.10) 0%, transparent 65%);
+  --gradient-orb-purple: var(--gradient-orb-cobalt);
   --gradient-orb-blue: radial-gradient(circle, rgba(37, 99, 235, 0.10) 0%, transparent 65%);
   --gradient-orb-rose: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 65%);
 
@@ -2499,4 +2503,148 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .chat-jump-bottom:active {
   transform: translateY(0) scale(0.96);
+}
+
+/* ── PRE-LAUNCH ESSENTIALS ────────────────────────────────────────────────── */
+
+/* 1. Accessible Skip to Content */
+.skip-link {
+  position: fixed;
+  top: -60px;
+  left: 1rem;
+  background: var(--accent-cyan);
+  color: #0b1329;
+  padding: 0.6rem 1.2rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  z-index: 10005;
+  transition: top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0, 229, 200, 0.4);
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #ffffff;
+}
+
+/* 2. Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0d9488 0%, #00e5c8 100%);
+  z-index: 10002;
+  transition: width 0.08s ease-out;
+  box-shadow: 0 0 10px rgba(0, 229, 200, 0.6);
+}
+
+/* 3. Floating Action Buttons */
+.floating-actions-dock {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 990;
+}
+
+.floating-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--drawer-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(20px);
+  cursor: pointer;
+  box-shadow: var(--neu-raised), 0 4px 20px rgba(0,0,0,0.3);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.floating-btn:hover {
+  transform: translateY(-3px);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan-border);
+  box-shadow: var(--neu-raised), 0 6px 25px rgba(0, 229, 200, 0.25);
+}
+
+.floating-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* 4. Cookie Consent Banner */
+.cookie-banner {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  max-width: 420px;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--drawer-bg);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(25px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  z-index: 999;
+  animation: fadeIn 0.35s ease-out;
+}
+
+/* 5. Mobile Navigation Menu */
+.mobile-nav-drawer {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-glass);
+  backdrop-filter: blur(30px);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 99;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* 6. Accordion FAQ Styling */
+.faq-accordion-item {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--overlay-soft);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faq-accordion-item.open {
+  border-color: var(--accent-cyan-border);
+  background: var(--glass-bg-md);
+}
+
+.faq-question-btn {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.faq-answer-panel {
+  padding: 0 1.5rem 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
 }

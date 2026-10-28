@@ -77,22 +77,22 @@ export default function PatientList() {
     <div className="animate-fade-in">
       {/* Glass Page Header */}
       <div style={{
-        background: 'rgba(168,85,247,0.05)',
+        background: 'var(--header-bg)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(168,85,247,0.14)',
+        border: '1px solid rgba(0,229,200,0.12)',
         borderRadius: 20, padding: '1.5rem 2rem', marginBottom: '1.5rem',
-        boxShadow: '0 0 40px rgba(168,85,247,0.06), 4px 4px 20px rgba(0,0,0,0.5)',
+        boxShadow: '0 0 40px rgba(0,229,200,0.06), 4px 4px 20px rgba(0,0,0,0.5)',
       }}>
         <h1 style={{ fontSize: '1.75rem', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Users size={26} color="var(--accent-purple)" />
-          <span style={{ background: 'var(--gradient-purple)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>My Patients</span>
+          <Users size={26} color="var(--accent-cyan)" />
+          <span className="text-gradient-cyan">My Patients</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Risk-sorted patient list with AI-assessed status</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
         
-        {/* Main Patient List Table — Glass Card */}
+        {/* Main Patient List Table */}
         <div style={{
           background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(24px)',
           border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '1.5rem',
@@ -109,7 +109,7 @@ export default function PatientList() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="badge badge-purple">{patients.length} connected</div>
+            <div className="badge badge-cyan">{patients.length} connected</div>
           </div>
 
           {loading ? (

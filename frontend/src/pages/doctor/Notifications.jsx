@@ -18,7 +18,7 @@ const SEVERITY_CONFIG = {
 
 const TYPE_CONFIG = {
   symptom_spike: { icon: <Activity size={18} />, color: 'var(--accent-red)' },
-  ai_uncertainty: { icon: <Brain size={18} />, color: 'var(--accent-purple)' },
+  ai_uncertainty: { icon: <Brain size={18} />, color: 'var(--accent-blue)' },
   scan_complete: { icon: <FileText size={18} />, color: 'var(--accent-cyan)' },
   system: { icon: <Info size={18} />, color: 'var(--text-secondary)' },
 };
@@ -293,7 +293,7 @@ export default function Notifications() {
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
             <strong style={{ color: '#f59e0b' }}>Clinical Note:</strong> Acknowledging an alert records it as reviewed.
             Symptom-escalation alerts are generated automatically when a patient's logged severity rises
-            significantly over consecutive days — always correlate with the patient's full record before acting.
+            significantly over consecutive days: always correlate with the patient's full record before acting.
           </p>
         </div>
       </div>

@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # the eroded mask can never exceed ~83% of the frame, so a full-frame photo
 # or document scan would otherwise slip past an eroded-mask ceiling.
 _MIN_BRAIN_COVERAGE = 0.05
-_MAX_HEAD_COVERAGE = 0.95
+_MAX_HEAD_COVERAGE = 0.98
 
 # Below this grayscale std the image is blank / nearly uniform.
 _MIN_GRAY_STD = 4.0
@@ -141,7 +141,21 @@ def assess_scan_quality(
     # what the ceiling check needs — the eroded mask caps out around 83%.
     gray224 = cv2.cvtColor(img224, cv2.COLOR_BGR2GRAY)
     gray_filtered = cv2.medianBlur(gray224, 5)
-    _, thresh_head = cv2.threshold(gray_filtered, 10, 255, cv2.THRESH_BINARY)
+
+    corners = np.concatenate([
+        gray_filtered[:12, :12].ravel(),
+        gray_filtered[:12, -12:].ravel(),
+        gray_filtered[-12:, :12].ravel(),
+        gray_filtered[-12:, -12:].ravel()
+    ])
+    bg_baseline = float(np.median(corners))
+    if bg_baseline < 60:
+        head_thresh = max(15.0, min(55.0, bg_baseline + 12.0))
+    else:
+        head_thresh = 10.0
+
+    _, thresh_head = cv2.threshold(gray_filtered, int(head_thresh), 255, cv2.THRESH_BINARY)
+    thresh_head = cv2.morphologyEx(thresh_head, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
     contours, _ = cv2.findContours(thresh_head, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     head_coverage = 0.0
@@ -159,7 +173,7 @@ def assess_scan_quality(
     if signals["gray_std"] < _MIN_GRAY_STD:
         return {
             "passes": False,
-            "reason": "The uploaded image is not a valid brain MRI scan (blank or nearly uniform — no scan content detected).",
+            "reason": "The uploaded image is not a valid brain MRI scan (blank or nearly uniform: no scan content detected).",
             "signals": signals,
         }
 
@@ -171,7 +185,7 @@ def assess_scan_quality(
         }
 
     if not contours:
-        # No pixels above the head threshold → nothing to segment; the pipeline's
+        # No pixels above the head threshold -> nothing to segment; the pipeline's
         # fallback mask (all-255) would otherwise read as 100% coverage.
         return {
             "passes": False,
@@ -189,14 +203,14 @@ def assess_scan_quality(
     if head_coverage > _MAX_HEAD_COVERAGE:
         return {
             "passes": False,
-            "reason": "The uploaded image is not a valid brain MRI scan — the frame is filled edge-to-edge (no head/background structure).",
+            "reason": "The uploaded image is not a valid brain MRI scan: the frame is filled edge-to-edge (no head or background structure detected).",
             "signals": signals,
         }
 
     if reject_ct and ring_ratio is not None and ring_ratio > _MAX_SKULL_RING_RATIO:
         return {
             "passes": False,
-            "reason": "The uploaded image is not a valid brain MRI scan (looks like a CT slice — bright dense skull ring, low interior contrast).",
+            "reason": "The uploaded image is not a valid brain MRI scan (looks like a CT slice: bright dense skull ring, low interior contrast).",
             "signals": signals,
         }
 

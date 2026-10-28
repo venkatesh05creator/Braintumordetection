@@ -38,10 +38,15 @@ if settings.cloudinary_enabled:
         # pyrefly: ignore [missing-import]
         import cloudinary.uploader
 
-        cloudinary.config(url=settings.CLOUDINARY_URL)
-        _cloudinary_configured = True
-    except ImportError:
-        pass
+        clean_url = settings.CLOUDINARY_URL.strip()
+        if clean_url.startswith("CLOUDINARY_URL="):
+            clean_url = clean_url.replace("CLOUDINARY_URL=", "", 1).strip()
+        os.environ["CLOUDINARY_URL"] = clean_url
+        cloudinary.reset_config()
+        if cloudinary.config().api_key:
+            _cloudinary_configured = True
+    except Exception as exc:
+        logger.warning("Cloudinary configuration failed: %s", exc)
 
 
 # ── Constants ─────────────────────────────────────────────────────────────────
@@ -123,7 +128,11 @@ async def upload_image(
         public_id = str(uuid.uuid4())
 
     if _cloudinary_configured:
-        return await _upload_to_cloudinary(file_bytes, folder, public_id)
+        try:
+            return await _upload_to_cloudinary(file_bytes, folder, public_id)
+        except Exception as exc:
+            logger.warning("Cloudinary upload failed: %s. Falling back to local storage.", exc)
+            return _save_locally(file_bytes, folder, public_id)
     else:
         return _save_locally(file_bytes, folder, public_id)
 
@@ -190,10 +199,16 @@ async def validate_is_brain_mri(image_bytes: bytes) -> tuple[bool, str]:
         """
         response = model.generate_content([prompt, pil_image])
         raw_text = response.text.strip()
-        if raw_text.startswith("```"):
-            raw_text = raw_text.split("```")[1]
-            if raw_text.startswith("json"):
-                raw_text = raw_text[4:]
+        if "```" in raw_text:
+            parts = raw_text.split("```")
+            raw_text = parts[1] if len(parts) >= 2 else raw_text
+        if raw_text.startswith("json"):
+            raw_text = raw_text[4:].strip()
+        raw_text = raw_text.strip()
+        start_idx = raw_text.find("{")
+        end_idx = raw_text.rfind("}")
+        if start_idx != -1 and end_idx != -1:
+            raw_text = raw_text[start_idx : end_idx + 1]
         data = json.loads(raw_text)
         return bool(data.get("is_brain_mri", True)), data.get("reason", "The uploaded image is not a valid brain MRI scan.")
     except Exception as exc:
