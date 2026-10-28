@@ -31,10 +31,10 @@ python-dotenv==1.0.1
 cloudinary==1.40.0
 
 # ─── AI / ML — Vision & Classification ───────────────────────────────────────
-numpy==1.26.4
-Pillow==10.3.0
-opencv-python-headless==4.9.0.80
-scikit-learn==1.4.2
+numpy>=1.26.0,<2.0.0
+Pillow>=10.3.0
+opencv-python-headless>=4.9.0.80
+scikit-learn>=1.4.0
 
 # ─── Medical Imaging — DICOM / NIfTI ingestion & volumetry ───────────────────
 pydicom==2.4.4
