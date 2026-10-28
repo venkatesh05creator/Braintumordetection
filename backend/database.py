@@ -9,8 +9,10 @@ The correct driver is selected automatically based on DATABASE_URL prefix.
 Includes resilient fallback to ensure high availability on hosting platforms.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
@@ -34,7 +36,7 @@ def _normalize_db_url(url: str) -> str:
     return url
 
 
-def _build_engine(target_url: str | None = None):
+def _build_engine(target_url: Optional[str] = None):
     db_url = _normalize_db_url(target_url or settings.DATABASE_URL)
     kwargs = {
         "url": db_url,
