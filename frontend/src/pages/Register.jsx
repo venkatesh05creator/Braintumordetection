@@ -8,7 +8,7 @@ export default function Register() {
   const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'patient' });
   const [showPass, setShowPass] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { register, isLoading, error } = useAuthStore();
+  const { register, login, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,27 +18,34 @@ export default function Register() {
     const result = await register(form);
     if (result.success) {
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 1800);
+      // Automatically log the user in immediately so they never have to manually log in
+      const loginRes = await login(form.email, form.password);
+      if (loginRes.success) {
+        setTimeout(() => {
+          navigate(loginRes.role === 'doctor' ? '/doctor' : '/patient');
+        }, 1200);
+      } else {
+        setTimeout(() => navigate('/login'), 1500);
+      }
     }
   };
 
   if (success) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="orb-container"><div className="orb orb-1" /><div className="orb orb-2" /></div>
-        <div className="glass-panel animate-scale-in" style={{ textAlign: 'center', padding: '3rem', maxWidth: 380 }}>
+        <div className="glass-panel animate-scale-in" style={{ textAlign: 'center', padding: '3rem', maxWidth: 400 }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
-            background: 'rgba(34,197,94,0.12)',
-            border: '1px solid rgba(34,197,94,0.30)',
+            background: 'rgba(13,148,136,0.12)',
+            border: '1px solid rgba(13,148,136,0.30)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: '0 0 30px rgba(34,197,94,0.20)',
+            boxShadow: '0 0 30px rgba(13,148,136,0.20)',
           }}>
-            <CheckCircle2 size={36} color="var(--accent-green)" />
+            <CheckCircle2 size={36} color="#0d9488" />
           </div>
           <h2 style={{ marginBottom: 8 }}>Account Created!</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Redirecting to sign in...</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Signing you into your clinical dashboard...</p>
         </div>
       </div>
     );
@@ -53,11 +60,6 @@ export default function Register() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative' }}>
       {/* Theme toggle */}
       <ThemeToggle floating />
-
-      <div className="orb-container">
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-      </div>
 
       <div style={{ width: '100%', maxWidth: 460 }} className="animate-fade-in">
         {/* Logo */}

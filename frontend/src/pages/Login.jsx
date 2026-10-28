@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, Sparkles, X, CheckCircle2 } from 'lucide-react';
+import { Brain, Eye, EyeOff, ArrowRight, Lock, Mail, X, Stethoscope, UserCheck } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import ThemeToggle from '../components/ThemeToggle';
 import { authAPI } from '../api/client';
@@ -39,6 +39,15 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await login(email, password);
+    if (result.success) {
+      navigate(result.role === 'doctor' ? '/doctor' : '/patient');
+    }
+  };
+
+  const handleDemoLogin = async (demoEmail, demoPass) => {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    const result = await login(demoEmail, demoPass);
     if (result.success) {
       navigate(result.role === 'doctor' ? '/doctor' : '/patient');
     }
@@ -166,6 +175,68 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          {/* Quick clinical demo access buttons */}
+          <div style={{ marginTop: '1.25rem' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              margin: '1rem 0 0.75rem',
+            }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Instant Clinical Demo
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('dr.demo@neuroscan.ai', 'DemoPass123')}
+                disabled={isLoading}
+                style={{
+                  padding: '0.65rem 0.5rem',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  border: '1px solid rgba(13, 148, 136, 0.35)',
+                  background: 'rgba(13, 148, 136, 0.08)',
+                  color: '#2dd4bf',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Stethoscope size={15} /> Demo Doctor
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('pt.demo@neuroscan.ai', 'DemoPass123')}
+                disabled={isLoading}
+                style={{
+                  padding: '0.65rem 0.5rem',
+                  borderRadius: 'var(--radius-md, 8px)',
+                  border: '1px solid rgba(56, 189, 248, 0.35)',
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  color: '#38bdf8',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <UserCheck size={15} /> Demo Patient
+              </button>
+            </div>
+          </div>
 
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
             <div className="divider" />

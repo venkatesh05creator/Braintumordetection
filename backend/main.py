@@ -102,6 +102,21 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("✅ Database initialized")
 
+    # Auto-seed initial demo accounts if empty
+    try:
+        from sqlalchemy import func, select
+        from database import AsyncSessionLocal
+        from models import User
+        async with AsyncSessionLocal() as session:
+            count = (await session.execute(select(func.count(User.id)))).scalar_one()
+            if count == 0:
+                logger.info("Database has no users. Seeding demo accounts...")
+                import seed_demo
+                await seed_demo.main()
+                logger.info("✅ Initial demo accounts seeded")
+    except Exception as exc:
+        logger.warning("Auto-seed check: %s", exc)
+
     # Pre-initialize AI orchestrator (loads models, configures APIs)
     try:
         from ai.orchestrator import get_orchestrator
