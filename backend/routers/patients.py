@@ -93,14 +93,24 @@ async def list_doctors(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Return all registered doctors."""
+    """Return all registered doctors with specialty and assignment metadata."""
     result = await db.execute(select(User).where(User.role == UserRole.DOCTOR))
     doctors = result.scalars().all()
+
+    assigned_doctor_id = None
+    if current_user.role == UserRole.PATIENT:
+        pat_res = await db.execute(select(Patient).where(Patient.user_id == current_user.id))
+        pat = pat_res.scalar_one_or_none()
+        if pat:
+            assigned_doctor_id = pat.doctor_id
+
     return [
         {
             "id": d.id,
             "full_name": d.full_name,
             "email": d.email,
+            "specialty": "Neuro-Oncology & Brain Tumor Review",
+            "is_assigned": d.id == assigned_doctor_id,
         }
         for d in doctors
     ]

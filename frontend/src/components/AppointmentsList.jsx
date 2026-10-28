@@ -48,7 +48,14 @@ export default function AppointmentsList({ previewOnly = false }) {
         ?.then(res => {
           const docs = res.data || [];
           setDoctors(docs);
-          if (docs.length > 0) setSelectedDoctorId(String(docs[0].id));
+          const assigned = docs.find(d => d.is_assigned);
+          if (assigned) {
+            setSelectedDoctorId(String(assigned.id));
+          } else if (docs.length > 0) {
+            setSelectedDoctorId(String(docs[0].id));
+          } else {
+            setSelectedDoctorId('');
+          }
         })
         ?.catch(() => {});
     } else if (user?.role === 'doctor') {
@@ -90,13 +97,10 @@ export default function AppointmentsList({ previewOnly = false }) {
         }
         payload.patient_id = parseInt(ptId, 10);
       } else {
-        const docId = selectedDoctorId || (doctors[0]?.id ? String(doctors[0].id) : null);
-        if (!docId) {
-          setNotification({ type: 'error', message: 'Please select a doctor.' });
-          setBookingLoading(false);
-          return;
+        // Patient booking: if selected, attach doctor_id; if empty/auto, backend auto-assigns primary on-call doctor
+        if (selectedDoctorId && selectedDoctorId !== 'auto') {
+          payload.doctor_id = parseInt(selectedDoctorId, 10);
         }
-        payload.doctor_id = parseInt(docId, 10);
       }
 
       await appointmentsAPI.create(payload);
@@ -510,37 +514,42 @@ export default function AppointmentsList({ previewOnly = false }) {
                 </div>
               ) : (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '0.35rem' }}>
-                    Attending Neurologist / Doctor
-                  </label>
-                  {doctors.length === 0 ? (
-                    <div style={{ fontSize: '0.8rem', color: '#f87171', padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px' }}>
-                      No specialists currently listed in database.
-                    </div>
-                  ) : (
-                    <select
-                      value={selectedDoctorId}
-                      onChange={(e) => setSelectedDoctorId(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        background: 'rgba(2, 6, 23, 0.6)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        borderRadius: '6px',
-                        color: '#f8fafc',
-                        fontSize: '0.85rem',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      {doctors.map((d) => (
-                        <option key={d.id} value={d.id} style={{ background: '#0b1329' }}>
-                          Dr. {d.full_name} ({d.email})
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1' }}>
+                      Attending Neurologist / Specialist
+                    </label>
+                    <span style={{ fontSize: '0.72rem', color: '#0d9488', fontWeight: 500 }}>
+                      No doctor ID needed
+                    </span>
+                  </div>
+
+                  <select
+                    value={selectedDoctorId}
+                    onChange={(e) => setSelectedDoctorId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      background: 'rgba(2, 6, 23, 0.6)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '6px',
+                      color: '#f8fafc',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="" style={{ background: '#0b1329' }}>
+                      First Available Specialist (Auto-Assign)
+                    </option>
+                    {doctors.map((d) => (
+                      <option key={d.id} value={d.id} style={{ background: '#0b1329' }}>
+                        Dr. {d.full_name} {d.is_assigned ? '★ (Your Primary Doctor)' : ''} - {d.specialty || 'Neuro-Oncology'}
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '0.35rem', lineHeight: '1.3' }}>
+                    Select a specialist from the list, or keep Auto-Assign to have our clinical system pair you with an available neuro-oncologist.
+                  </div>
                 </div>
               )}
 

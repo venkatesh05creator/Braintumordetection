@@ -187,7 +187,7 @@ async def create_appointment(
         # Validate doctor
         doc_res = await db.execute(select(User).where(User.id == doctor_id))
         doctor = doc_res.scalar_one_or_none()
-        if not doctor or doctor.role != UserRole.DOCTOR:
+        if not doctor or doctor.role not in (UserRole.DOCTOR, UserRole.ADMIN):
             raise HTTPException(status_code=404, detail="Doctor not found.")
         if settings.REQUIRE_DOCTOR_VERIFICATION and not doctor.is_verified:
             raise HTTPException(
